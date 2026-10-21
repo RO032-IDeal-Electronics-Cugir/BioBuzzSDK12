@@ -17,7 +17,13 @@ public class TeleOpOpMode extends OpMode {
 
     @Override
     public void loop() {
-        // Intake controls
+        // Drivetrain control (Mecanum drive from Gamepad 1)
+        double forward = -gamepad1.left_stick_y;
+        double strafe = gamepad1.left_stick_x;
+        double turn = gamepad1.right_stick_x;
+        robot.drivetrain.drive(forward, strafe, turn);
+
+        // Intake controls (A = Forward, B = Reverse)
         if (gamepad1.a) {
             robot.intake.setPower(1.0);
         } else if (gamepad1.b) {
@@ -26,7 +32,7 @@ public class TeleOpOpMode extends OpMode {
             robot.intake.stop();
         }
 
-        // Shooter controls
+        // Shooter controls (X = Shoot)
         if (gamepad1.x) {
             robot.shooter.setPower(0.85);
         } else {
