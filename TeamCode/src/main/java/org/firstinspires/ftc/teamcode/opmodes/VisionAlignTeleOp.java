@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.ivy.Command;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.commands.VisionAlignCommand;
 import org.firstinspires.ftc.teamcode.util.PDController;
 
 @Configurable
@@ -11,6 +13,7 @@ import org.firstinspires.ftc.teamcode.util.PDController;
 public class VisionAlignTeleOp extends OpMode {
     private Robot robot;
     private PDController pdController;
+    private Command visionAlignCommand;
 
     public static double P_GAIN = 0.015;
     public static double D_GAIN = 0.00001;
@@ -19,6 +22,7 @@ public class VisionAlignTeleOp extends OpMode {
     public void init() {
         robot = new Robot(hardwareMap);
         pdController = new PDController(P_GAIN, D_GAIN);
+        visionAlignCommand = new VisionAlignCommand(robot, pdController).build();
 
         if (robot.vision != null) {
             robot.vision.setPipeline(1);
@@ -37,26 +41,21 @@ public class VisionAlignTeleOp extends OpMode {
 
         double forward = -gamepad1.left_stick_y;
         double strafe = gamepad1.left_stick_x;
-        double turn;
 
         double error = 0.0;
         boolean hasTarget = robot.vision != null && robot.vision.hasTarget();
 
         if (hasTarget) {
             error = robot.vision.getTargetX();
-        }
-
-        //if (gamepad1.left_bumper && hasTarget) {
-        if (hasTarget) {
-            turn = pdController.calculate(error);
+            double turn = pdController.calculate(error);
+            robot.drivetrain.drive(forward, strafe, turn);
             telemetry.addData("Vision Align Status", "ACTIVE");
         } else {
-            turn = gamepad1.right_stick_x;
+            double turn = gamepad1.right_stick_x;
             pdController.reset();
+            robot.drivetrain.drive(forward, strafe, turn);
             telemetry.addData("Vision Align Status", "MANUAL");
         }
-
-        robot.drivetrain.drive(forward, strafe, turn);
 
         if (gamepad1.a) {
             robot.intake.setPower(1.0);
