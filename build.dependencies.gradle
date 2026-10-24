@@ -1,5 +1,7 @@
 repositories {
     mavenCentral()
+    // Maven repository pentru ecosistemul Panels și pluginul Limelight Proxy
+    maven { url = 'https://mymaven.bylazar.com/releases' }
     maven { url 'https://repo.dairy.foundation/releases/'}
     google() // Needed for androidx
 }
@@ -18,4 +20,9 @@ dependencies {
     implementation 'com.pedropathing:revhub:3.0.2'
     implementation 'com.pedropathing:tuning:1.0.1'
     implementation 'com.pedropathing.ivy:pedro:1.1.1'
+
+    // Panels (dezvoltat de Lazarus) - Server web încorporat pe Control Hub pentru dashboard wireless
+    implementation 'com.bylazar:fullpanels:1.0.19'
+    // OkHttp - Necesar pentru funcționalitatea de proxy HTTP către camera Limelight
+    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
 }
