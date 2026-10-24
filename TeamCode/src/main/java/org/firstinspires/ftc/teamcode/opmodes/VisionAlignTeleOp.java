@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.bylazar.configurables.annotations.Configurable;
-import com.pedropathing.ivy.Command;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Robot;
@@ -13,7 +12,7 @@ import org.firstinspires.ftc.teamcode.util.PDController;
 public class VisionAlignTeleOp extends OpMode {
     private Robot robot;
     private PDController pdController;
-    private Command visionAlignCommand;
+    private VisionAlignCommand visionAlignCommand;
 
     public static double P_GAIN = 0.015;
     public static double D_GAIN = 0.00001;
@@ -22,7 +21,7 @@ public class VisionAlignTeleOp extends OpMode {
     public void init() {
         robot = new Robot(hardwareMap);
         pdController = new PDController(P_GAIN, D_GAIN);
-        visionAlignCommand = new VisionAlignCommand(robot, pdController).build();
+        visionAlignCommand = new VisionAlignCommand(robot, pdController);
 
         if (robot.vision != null) {
             robot.vision.setPipeline(1);
@@ -47,8 +46,8 @@ public class VisionAlignTeleOp extends OpMode {
 
         if (hasTarget) {
             error = robot.vision.getTargetX();
-            double turn = pdController.calculate(error);
-            robot.drivetrain.drive(forward, strafe, turn);
+            // EXECUTĂM DIRECT COMANDA REUTILIZABILĂ
+            visionAlignCommand.execute();
             telemetry.addData("Vision Align Status", "ACTIVE");
         } else {
             double turn = gamepad1.right_stick_x;

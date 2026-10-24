@@ -14,6 +14,16 @@ public class VisionAlignCommand {
         this.pdController = pdController;
     }
 
+    public void execute() {
+        if (robot.vision != null && robot.vision.hasTarget()) {
+            double error = robot.vision.getTargetX();
+            double turn = pdController.calculate(error);
+            robot.drivetrain.drive(0, 0, turn);
+        } else {
+            robot.drivetrain.drive(0, 0, 0);
+        }
+    }
+
     public Command build() {
         return new CommandBuilder()
                 .setStart(() -> {
@@ -22,15 +32,7 @@ public class VisionAlignCommand {
                         robot.vision.setPipeline(1);
                     }
                 })
-                .setExecute(() -> {
-                    if (robot.vision != null && robot.vision.hasTarget()) {
-                        double error = robot.vision.getTargetX();
-                        double turn = -pdController.calculate(error);
-                        robot.drivetrain.drive(0, 0, turn);
-                    } else {
-                        robot.drivetrain.drive(0, 0, 0);
-                    }
-                })
+                .setExecute(this::execute)
                 .setDone(() -> false);
     }
 }
