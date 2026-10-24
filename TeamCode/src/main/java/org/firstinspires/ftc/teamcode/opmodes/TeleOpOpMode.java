@@ -25,16 +25,16 @@ public class TeleOpOpMode extends OpMode {
 
         // Intake controls (A = Forward, B = Reverse)
         if (gamepad1.a) {
-            robot.intake.setPower(1.0);
+            robot.intake.setPower(0.25);
         } else if (gamepad1.b) {
-            robot.intake.setPower(-1.0);
+            robot.intake.setPower(-0.25);
         } else {
             robot.intake.stop();
         }
 
         // Shooter controls (X = Shoot)
         if (gamepad1.x) {
-            robot.shooter.setPower(0.85);
+            robot.shooter.setPower(0.25);
         } else {
             robot.shooter.stop();
         }
