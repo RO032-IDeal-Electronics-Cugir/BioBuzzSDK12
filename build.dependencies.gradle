@@ -28,5 +28,5 @@ dependencies {
     // OkHttp - Necesar pentru funcționalitatea de proxy HTTP către camera Limelight
     implementation 'com.squareup.okhttp3:okhttp:4.10.0'
     // FTC Dashboard (acmerobotics) - Pentru tuning live de variabile și grafice
-    implementation 'com.acmerobotics.dashboard:dashboard:0.4.16'
+    implementation 'com.acmerobotics.dashboard:dashboard:0.6.0'
 }
