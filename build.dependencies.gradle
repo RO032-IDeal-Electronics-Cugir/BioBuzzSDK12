@@ -1,5 +1,7 @@
 repositories {
     mavenCentral()
+    // Maven repository pentru acmerobotics (FTC Dashboard)
+    maven { url = 'https://maven.brott.dev' }
     // Maven repository pentru ecosistemul Panels și pluginul Limelight Proxy
     maven { url = 'https://mymaven.bylazar.com/releases' }
     maven { url 'https://repo.dairy.foundation/releases/'}
@@ -25,4 +27,6 @@ dependencies {
     implementation 'com.bylazar:fullpanels:1.0.19'
     // OkHttp - Necesar pentru funcționalitatea de proxy HTTP către camera Limelight
     implementation 'com.squareup.okhttp3:okhttp:4.10.0'
+    // FTC Dashboard (acmerobotics) - Pentru tuning live de variabile și grafice
+    implementation 'com.acmerobotics.dashboard:dashboard:0.4.16'
 }
