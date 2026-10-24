@@ -1,19 +1,19 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
-import com.acmerobotics.dashboard.config.Config;
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.util.PDController;
 
-@Config
+@Configurable
 @TeleOp(name = "Vision Align TeleOp", group = "Competition")
 public class VisionAlignTeleOp extends OpMode {
     private Robot robot;
     private PDController pdController;
 
-    public static double P_GAIN = 0.03;
-    public static double D_GAIN = 0.001;
+    public static double P_GAIN = 0.015;
+    public static double D_GAIN = 0.00001;
 
     @Override
     public void init() {
@@ -30,6 +30,8 @@ public class VisionAlignTeleOp extends OpMode {
 
     @Override
     public void loop() {
+        robot.update();
+
         pdController.setKp(P_GAIN);
         pdController.setKd(D_GAIN);
 
@@ -41,10 +43,11 @@ public class VisionAlignTeleOp extends OpMode {
         boolean hasTarget = robot.vision != null && robot.vision.hasTarget();
 
         if (hasTarget) {
-            error = -robot.vision.getTargetX();
+            error = robot.vision.getTargetX();
         }
 
-        if (gamepad1.left_bumper && hasTarget) {
+        //if (gamepad1.left_bumper && hasTarget) {
+        if (hasTarget) {
             turn = pdController.calculate(error);
             telemetry.addData("Vision Align Status", "ACTIVE");
         } else {
@@ -69,11 +72,11 @@ public class VisionAlignTeleOp extends OpMode {
             robot.shooter.stop();
         }
 
-        robot.update();
-
-        // Telemetrie vizibilă atât pe Driver Station, cât și în FTC Dashboard
+        // Telemetrie vizibilă în Panels și Driver Station
         telemetry.addData("Has Target", hasTarget);
         telemetry.addData("Heading Error (deg)", error);
+        telemetry.addData("Current P_GAIN", P_GAIN);
+        telemetry.addData("Current D_GAIN", D_GAIN);
         if (hasTarget) {
             telemetry.addData("Target Y (ty)", robot.vision.getTargetY());
         }
