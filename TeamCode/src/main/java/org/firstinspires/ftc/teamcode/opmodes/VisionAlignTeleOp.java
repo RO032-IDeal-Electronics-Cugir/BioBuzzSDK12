@@ -22,18 +22,6 @@ public class VisionAlignTeleOp extends RobotOpMode {
     private PDController pdController;
     private VisionAlignCommand visionAlignCommand;
 
-    private boolean isAlignActive = false;
-
-    // Direct edge detection flags (PlayStation controller mappings)
-    private boolean prevG1Share = false;
-    private boolean prevG1LB = false;
-    private boolean prevG1Square = false;
-    private boolean prevG2Triangle = false;
-    private boolean prevG2LB = false;
-    private boolean prevG2RB = false;
-    private boolean prevG2DUp = false;
-    private boolean prevG2DDown = false;
-
     @Override
     public void init() {
         super.init();
@@ -63,33 +51,30 @@ public class VisionAlignTeleOp extends RobotOpMode {
         double turn = gamepad1.right_trigger - gamepad1.left_trigger;
 
         // Comutare Mode Conducere (Field-Centric vs Robot-Centric) cu Share (Back)
-        if (gamepad1.share && !prevG1Share) {
+        if (gamepad1.shareWasPressed()) {
             robot.drivetrain.toggleDriveMode();
         }
-        prevG1Share = gamepad1.share;
 
-        // Auto-Align cu Limelight cand se tine apasat Right Bumper (R1)
-        boolean alignPressed = gamepad1.right_bumper;
-        if (alignPressed) {
-            if (!isAlignActive) {
-                isAlignActive = true;
-                visionAlignCommand.start();
-            }
+        // Auto-Align cu Limelight cand se tine apasat Right Bumper (R1) cu stări native WasPressed/WasReleased
+        if (gamepad1.rightBumperWasPressed()) {
+            visionAlignCommand.start();
+        }
+        if (gamepad1.rightBumperWasReleased()) {
+            visionAlignCommand.stop();
+        }
+
+        if (gamepad1.right_bumper) {
             visionAlignCommand.execute(forward, strafe, TOLERANCE_DEGREES, VISION_ALPHA);
 
             boolean aligned = visionAlignCommand.isAligned(TOLERANCE_DEGREES, VISION_ALPHA);
             telemetry.addData("Vision Align", aligned ? "ALIGNED (In Tolerance)" : "ALIGNING (In Progress)");
         } else {
-            if (isAlignActive) {
-                isAlignActive = false;
-                visionAlignCommand.stop();
-            }
             robot.drivetrain.drive(forward, strafe, turn);
             telemetry.addData("Vision Align", "MANUAL (Goal Pipeline 0)");
         }
 
         // Gamepad 1 - Intake Control (Cross = In, Circle = Out, L1 = Short Reverse)
-        if (gamepad1.left_bumper && !prevG1LB) {
+        if (gamepad1.leftBumperWasPressed()) {
             robot.intake.shortReverse().schedule();
         } else if (!gamepad1.left_bumper) {
             if (gamepad1.cross) {
@@ -100,39 +85,32 @@ public class VisionAlignTeleOp extends RobotOpMode {
                 robot.intake.stop();
             }
         }
-        prevG1LB = gamepad1.left_bumper;
 
         // Gamepad 1 - Shooter Toggle (Square)
-        if (gamepad1.square && !prevG1Square) {
+        if (gamepad1.squareWasPressed()) {
             robot.shooter.toggle();
         }
-        prevG1Square = gamepad1.square;
 
         // Gamepad 2 - Schimbare Alianță (L1 = RED, R1 = BLUE)
-        if (gamepad2.left_bumper && !prevG2LB) {
+        if (gamepad2.leftBumperWasPressed()) {
             Alliance.current = Alliance.RED;
         }
-        if (gamepad2.right_bumper && !prevG2RB) {
+        if (gamepad2.rightBumperWasPressed()) {
             Alliance.current = Alliance.BLUE;
         }
-        prevG2LB = gamepad2.left_bumper;
-        prevG2RB = gamepad2.right_bumper;
 
         // Gamepad 2 - Reset Heading Field-Centric (Triangle)
-        if (gamepad2.triangle && !prevG2Triangle) {
+        if (gamepad2.triangleWasPressed()) {
             robot.drivetrain.resetHeading();
         }
-        prevG2Triangle = gamepad2.triangle;
 
         // Gamepad 2 - Ajustare Putere Shooter (DPad Up / Down)
-        if (gamepad2.dpad_up && !prevG2DUp) {
+        if (gamepad2.dpadUpWasPressed()) {
             robot.shooter.increasePower(0.05);
         }
-        if (gamepad2.dpad_down && !prevG2DDown) {
+        if (gamepad2.dpadDownWasPressed()) {
             robot.shooter.decreasePower(0.05);
         }
-        prevG2DUp = gamepad2.dpad_up;
-        prevG2DDown = gamepad2.dpad_down;
 
         // Telemetrie OpMode
         telemetry.addData("Alliance", Alliance.current);
