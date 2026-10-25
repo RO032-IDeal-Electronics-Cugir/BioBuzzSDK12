@@ -9,10 +9,19 @@ import org.firstinspires.ftc.teamcode.util.PDController;
 public class VisionAlignCommand {
     private final Robot robot;
     private final PDController pdController;
+    private double alpha = 0.15; // Default EMA smoothing factor matching VisionAlignTeleOp.VISION_ALPHA
 
     public VisionAlignCommand(Robot robot, PDController pdController) {
         this.robot = robot;
         this.pdController = pdController;
+    }
+
+    public void setAlpha(double alpha) {
+        this.alpha = alpha;
+    }
+
+    public double getAlpha() {
+        return alpha;
     }
 
     public void start() {
@@ -28,7 +37,7 @@ public class VisionAlignCommand {
     }
 
     public void execute(double forward, double strafe) {
-        execute(forward, strafe, pdController.getTolerance(), 0.35);
+        execute(forward, strafe, pdController.getTolerance(), alpha);
     }
 
     public void execute(double forward, double strafe, double tolerance, double alpha) {
@@ -42,7 +51,7 @@ public class VisionAlignCommand {
     }
 
     public boolean isAligned() {
-        return isAligned(pdController.getTolerance(), 0.35);
+        return isAligned(pdController.getTolerance(), alpha);
     }
 
     public boolean isAligned(double tolerance, double alpha) {

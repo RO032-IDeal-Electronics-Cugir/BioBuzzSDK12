@@ -44,6 +44,7 @@ public class VisionAlignTeleOp extends RobotOpMode {
         pdController.setKd(D_GAIN);
         pdController.setKf(F_GAIN);
         pdController.setTolerance(TOLERANCE_DEGREES);
+        visionAlignCommand.setAlpha(VISION_ALPHA);
 
         // Gamepad 1 - Control Drivetrain (Inainte/Inapoi = Left Y, Strafe = Right X, Rotire = Triggers R2 - L2)
         double forward = -gamepad1.left_stick_y;

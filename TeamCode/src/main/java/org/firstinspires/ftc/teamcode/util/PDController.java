@@ -6,16 +6,16 @@ public class PDController {
     private double kP;
     private double kD;
     private double kF = 0.08; // Minimum feedforward power to overcome static friction
-    private double tolerance = 1.5; // Default deadband tolerance in degrees
+    private double tolerance = 3.0; // Default deadband tolerance in degrees
     private double lastError = 0;
     private ElapsedTime timer = new ElapsedTime();
 
     public PDController(double kP, double kD) {
-        this(kP, kD, 0.08, 1.5);
+        this(kP, kD, 0.08, 3.0);
     }
 
     public PDController(double kP, double kD, double kF) {
-        this(kP, kD, kF, 1.5);
+        this(kP, kD, kF, 3.0);
     }
 
     public PDController(double kP, double kD, double kF, double tolerance) {
