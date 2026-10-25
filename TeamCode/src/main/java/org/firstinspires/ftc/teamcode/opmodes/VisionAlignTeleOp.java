@@ -57,10 +57,10 @@ public class VisionAlignTeleOp extends RobotOpMode {
         pdController.setKf(F_GAIN);
         pdController.setTolerance(TOLERANCE_DEGREES);
 
-        // Gamepad 1 - Control Drivetrain
+        // Gamepad 1 - Control Drivetrain (Inainte/Inapoi = Left Y, Strafe = Right X, Rotire = Triggers R2 - L2)
         double forward = -gamepad1.left_stick_y;
-        double strafe = gamepad1.left_stick_x;
-        double turn = gamepad1.right_stick_x;
+        double strafe = gamepad1.right_stick_x;
+        double turn = gamepad1.right_trigger - gamepad1.left_trigger;
 
         // Comutare Mode Conducere (Field-Centric vs Robot-Centric) cu Share (Back)
         if (gamepad1.share && !prevG1Share) {
@@ -68,9 +68,9 @@ public class VisionAlignTeleOp extends RobotOpMode {
         }
         prevG1Share = gamepad1.share;
 
-        // Auto-Align cu Limelight cand se tine apasat Right Trigger (R2)
-        boolean triggerPressed = gamepad1.right_trigger > 0.3;
-        if (triggerPressed) {
+        // Auto-Align cu Limelight cand se tine apasat Right Bumper (R1)
+        boolean alignPressed = gamepad1.right_bumper;
+        if (alignPressed) {
             if (!isAlignActive) {
                 isAlignActive = true;
                 visionAlignCommand.start();
