@@ -1,17 +1,17 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import static com.pedropathing.api.Paths.line;
 import static com.pedropathing.ivy.Scheduler.schedule;
 import static com.pedropathing.ivy.commands.Commands.instant;
 import static com.pedropathing.ivy.commands.Commands.waitMs;
 import static com.pedropathing.ivy.groups.Groups.parallel;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.follow;
-import static com.pedropathing.api.Paths.line;
 
 import com.pedropathing.follower.Follower;
+import com.pedropathing.ivy.Scheduler;
 import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
-import com.pedropathing.ivy.Scheduler;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -23,6 +23,7 @@ public class AutoOpMode extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        Scheduler.reset();
         robot = new Robot(hardwareMap);
 
         Follower follower = robot.drivetrain.getFollower();
@@ -34,19 +35,17 @@ public class AutoOpMode extends LinearOpMode {
 
         waitForStart();
 
-        // Programăm comanda autonomă principală folosind structura Ivy (sequential, parallel, follow, waitMs, instant)
         schedule(sequential(
                 parallel(
-                        instant(() -> robot.intake.setPower(1.0)),
+                        instant(() -> robot.intake.on()),
                         follow(follower, path1)
                 ),
                 instant(() -> robot.intake.stop()),
-                instant(() -> robot.shooter.setPower(0.85)),
+                instant(() -> robot.shooter.turnOn()),
                 waitMs(2000),
-                instant(() -> robot.shooter.setPower(0))
+                instant(() -> robot.shooter.turnOff())
         ));
 
-        // Bucla principală care rulează Scheduler-ul Ivy
         while (opModeIsActive()) {
             Scheduler.execute();
             robot.update();

@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.commands;
 import com.pedropathing.ivy.Command;
 import com.pedropathing.ivy.CommandBuilder;
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
 import org.firstinspires.ftc.teamcode.util.PDController;
 
 public class VisionAlignCommand {
@@ -14,24 +15,52 @@ public class VisionAlignCommand {
         this.pdController = pdController;
     }
 
+    public void start() {
+        pdController.reset();
+        if (robot.vision != null) {
+            robot.vision.resetFilter();
+            robot.vision.setPipeline(VisionSubsystem.BALL_PIPELINE);
+        }
+    }
+
     public void execute() {
+        execute(0.0, 0.0);
+    }
+
+    public void execute(double forward, double strafe) {
+        execute(forward, strafe, pdController.getTolerance(), 0.35);
+    }
+
+    public void execute(double forward, double strafe, double tolerance, double alpha) {
         if (robot.vision != null && robot.vision.hasTarget()) {
-            double error = robot.vision.getTargetX();
-            double turn = pdController.calculate(error);
-            robot.drivetrain.drive(0, 0, turn);
+            double error = robot.vision.getFilteredTargetX(alpha);
+            double turn = pdController.calculate(error, tolerance);
+            robot.drivetrain.drive(forward, strafe, turn, false);
         } else {
-            robot.drivetrain.drive(0, 0, 0);
+            robot.drivetrain.drive(forward, strafe, 0.0, false);
+        }
+    }
+
+    public boolean isAligned() {
+        return isAligned(pdController.getTolerance(), 0.35);
+    }
+
+    public boolean isAligned(double tolerance, double alpha) {
+        if (robot.vision != null && robot.vision.hasTarget()) {
+            return pdController.isWithinTolerance(robot.vision.getFilteredTargetX(alpha));
+        }
+        return false;
+    }
+
+    public void stop() {
+        if (robot.vision != null) {
+            robot.vision.setPipeline(VisionSubsystem.GOAL_PIPELINE);
         }
     }
 
     public Command build() {
         return new CommandBuilder()
-                .setStart(() -> {
-                    pdController.reset();
-                    if (robot.vision != null) {
-                        robot.vision.setPipeline(1);
-                    }
-                })
+                .setStart(this::start)
                 .setExecute(this::execute)
                 .setDone(() -> false);
     }

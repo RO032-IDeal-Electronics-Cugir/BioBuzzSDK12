@@ -1,18 +1,41 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.acmerobotics.dashboard.config.Config;
+import com.pedropathing.ivy.Command;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
+import static com.pedropathing.ivy.commands.Commands.infinite;
+
+@Config
 public class VisionSubsystem {
+    public static final int GOAL_PIPELINE = 0; // AprilTags / Containere
+    public static final int BALL_PIPELINE = 1; // Detector Culoare / Bile
+
     private Limelight3A limelight;
     private LLResult latestResult;
+    private Telemetry telemetry;
+    private int currentPipeline = GOAL_PIPELINE;
+
+    // EMA Filter State
+    private double filteredTx = 0.0;
+    private boolean isFilterInitialized = false;
 
     public VisionSubsystem(HardwareMap hardwareMap) {
+        this(hardwareMap, null);
+    }
+
+    public VisionSubsystem(HardwareMap hardwareMap, Telemetry telemetry) {
+        this.telemetry = telemetry;
         try {
             limelight = hardwareMap.get(Limelight3A.class, "limelight");
-            limelight.start();
+            if (limelight != null) {
+                limelight.pipelineSwitch(GOAL_PIPELINE);
+                limelight.start();
+            }
         } catch (Exception e) {
             limelight = null;
         }
@@ -32,6 +55,29 @@ public class VisionSubsystem {
         return hasTarget() ? latestResult.getTx() : 0.0;
     }
 
+    public double getFilteredTargetX(double alpha) {
+        if (!hasTarget()) {
+            resetFilter();
+            return 0.0;
+        }
+
+        double rawTx = getTargetX();
+        if (!isFilterInitialized) {
+            filteredTx = rawTx;
+            isFilterInitialized = true;
+        } else {
+            // EMA formula: filtered = alpha * raw + (1 - alpha) * filtered
+            alpha = Math.max(0.01, Math.min(1.0, alpha));
+            filteredTx = alpha * rawTx + (1.0 - alpha) * filteredTx;
+        }
+        return filteredTx;
+    }
+
+    public void resetFilter() {
+        filteredTx = 0.0;
+        isFilterInitialized = false;
+    }
+
     public double getTargetY() {
         return hasTarget() ? latestResult.getTy() : 0.0;
     }
@@ -41,12 +87,40 @@ public class VisionSubsystem {
     }
 
     public void setPipeline(int pipelineIndex) {
-        if (limelight != null) {
-            limelight.pipelineSwitch(pipelineIndex);
+        if (currentPipeline != pipelineIndex) {
+            currentPipeline = pipelineIndex;
+            resetFilter();
+            if (limelight != null) {
+                limelight.pipelineSwitch(pipelineIndex);
+            }
         }
+    }
+
+    public int getPipeline() {
+        return currentPipeline;
+    }
+
+    public void switchToBallPipeline() {
+        setPipeline(BALL_PIPELINE);
+    }
+
+    public void switchToGoalPipeline() {
+        setPipeline(GOAL_PIPELINE);
     }
 
     public Limelight3A getLimelight() {
         return limelight;
+    }
+
+    public Command periodic() {
+        return infinite(() -> {
+            update();
+            if (telemetry != null) {
+                telemetry.addData("Limelight Target Found", hasTarget());
+                telemetry.addData("Limelight Raw Tx", getTargetX());
+                telemetry.addData("Limelight Ty", getTargetY());
+                telemetry.addData("Limelight Pipeline", currentPipeline);
+            }
+        });
     }
 }

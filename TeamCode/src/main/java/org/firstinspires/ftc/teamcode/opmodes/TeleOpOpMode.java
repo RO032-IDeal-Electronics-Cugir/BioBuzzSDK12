@@ -1,47 +1,44 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.robot.RobotOpMode;
 
-@TeleOp(name = "Robot TeleOp", group = "Competition")
-public class TeleOpOpMode extends OpMode {
-    private Robot robot;
+@TeleOp(name = "Robot TeleOp (Basic)", group = "Competition")
+public class TeleOpOpMode extends RobotOpMode {
 
     @Override
     public void init() {
-        robot = new Robot(hardwareMap);
-        telemetry.addData("Status", "TeleOp Initialized");
+        super.init();
+        telemetry.addData("Status", "Basic TeleOp Initialized");
         telemetry.update();
     }
 
     @Override
     public void loop() {
+        super.loop();
+
         // Drivetrain control (Mecanum drive from Gamepad 1)
         double forward = -gamepad1.left_stick_y;
         double strafe = gamepad1.left_stick_x;
         double turn = gamepad1.right_stick_x;
         robot.drivetrain.drive(forward, strafe, turn);
 
-        // Intake controls (A = Forward, B = Reverse)
-        if (gamepad1.a) {
-            robot.intake.setPower(0.25);
-        } else if (gamepad1.b) {
-            robot.intake.setPower(-0.25);
+        // Intake controls (Cross = Forward, Circle = Reverse)
+        if (gamepad1.cross) {
+            robot.intake.on();
+        } else if (gamepad1.circle) {
+            robot.intake.reverse();
         } else {
             robot.intake.stop();
         }
 
-        // Shooter controls (X = Shoot)
-        if (gamepad1.x) {
-            robot.shooter.setPower(0.25);
+        // Shooter controls (Square = Toggle)
+        if (gamepad1.square) {
+            robot.shooter.turnOn();
         } else {
-            robot.shooter.stop();
+            robot.shooter.turnOff();
         }
 
-        robot.update();
-
-        telemetry.addData("Status", "Running");
-        telemetry.update();
+        robot.updateTelemetry();
     }
 }
