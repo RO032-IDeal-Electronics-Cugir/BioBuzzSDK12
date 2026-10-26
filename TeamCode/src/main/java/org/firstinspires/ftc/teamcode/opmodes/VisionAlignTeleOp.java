@@ -1,23 +1,14 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
-import com.acmerobotics.dashboard.config.Config;
-import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.commands.VisionAlignCommand;
+import org.firstinspires.ftc.teamcode.configurables.FindingBallConfig;
 import org.firstinspires.ftc.teamcode.robot.Alliance;
 import org.firstinspires.ftc.teamcode.robot.RobotOpMode;
 import org.firstinspires.ftc.teamcode.util.PDController;
 
-@Config
-@Configurable
 @TeleOp(name = "Vision Align TeleOp (Command-Based)", group = "Competition")
 public class VisionAlignTeleOp extends RobotOpMode {
-
-    public static double P_GAIN = 0.015;
-    public static double D_GAIN = 0.00001;
-    public static double F_GAIN = 0.08; // Feedforward minimum power (Panels / FTC Dashboard)
-    public static double TOLERANCE_DEGREES = 3; // Angle tolerance deadband (Panels / FTC Dashboard)
-    public static double VISION_ALPHA = 0.15; // EMA Low-Pass Filter smoothing factor (Panels / FTC Dashboard)
 
     private PDController pdController;
     private VisionAlignCommand visionAlignCommand;
@@ -26,7 +17,12 @@ public class VisionAlignTeleOp extends RobotOpMode {
     public void init() {
         super.init();
 
-        pdController = new PDController(P_GAIN, D_GAIN, F_GAIN, TOLERANCE_DEGREES);
+        pdController = new PDController(
+                FindingBallConfig.P_GAIN,
+                FindingBallConfig.D_GAIN,
+                FindingBallConfig.F_GAIN,
+                FindingBallConfig.TOLERANCE_DEGREES
+        );
         visionAlignCommand = new VisionAlignCommand(robot, pdController);
 
         // Retine pozitia de la autonom daca exista
@@ -40,11 +36,10 @@ public class VisionAlignTeleOp extends RobotOpMode {
     public void loop() {
         super.loop();
 
-        pdController.setKp(P_GAIN);
-        pdController.setKd(D_GAIN);
-        pdController.setKf(F_GAIN);
-        pdController.setTolerance(TOLERANCE_DEGREES);
-        visionAlignCommand.setAlpha(VISION_ALPHA);
+        pdController.setKp(FindingBallConfig.P_GAIN);
+        pdController.setKd(FindingBallConfig.D_GAIN);
+        pdController.setKf(FindingBallConfig.F_GAIN);
+        pdController.setTolerance(FindingBallConfig.TOLERANCE_DEGREES);
 
         // Gamepad 1 - Control Drivetrain (Inainte/Inapoi = Left Y, Strafe = Right X, Rotire = Triggers R2 - L2)
         double forward = -gamepad1.left_stick_y;
@@ -65,9 +60,9 @@ public class VisionAlignTeleOp extends RobotOpMode {
         }
 
         if (gamepad1.right_bumper) {
-            visionAlignCommand.execute(forward, strafe, TOLERANCE_DEGREES, VISION_ALPHA);
+            visionAlignCommand.execute(forward, strafe);
 
-            boolean aligned = visionAlignCommand.isAligned(TOLERANCE_DEGREES, VISION_ALPHA);
+            boolean aligned = visionAlignCommand.isAligned();
             telemetry.addData("Vision Align", aligned ? "ALIGNED (In Tolerance)" : "ALIGNING (In Progress)");
         } else {
             robot.drivetrain.drive(forward, strafe, turn);
@@ -115,13 +110,13 @@ public class VisionAlignTeleOp extends RobotOpMode {
 
         // Telemetrie OpMode
         telemetry.addData("Alliance", Alliance.current);
-        telemetry.addData("Feedforward kF", F_GAIN);
-        telemetry.addData("Tolerance (deg)", TOLERANCE_DEGREES);
-        telemetry.addData("Vision Alpha", VISION_ALPHA);
+        telemetry.addData("Feedforward kF", FindingBallConfig.F_GAIN);
+        telemetry.addData("Tolerance (deg)", FindingBallConfig.TOLERANCE_DEGREES);
+        telemetry.addData("Vision Alpha", FindingBallConfig.VISION_ALPHA);
         telemetry.addData("Limelight Target", robot.vision != null && robot.vision.hasTarget());
         if (robot.vision != null && robot.vision.hasTarget()) {
             telemetry.addData("Limelight Raw Tx", robot.vision.getTargetX());
-            telemetry.addData("Limelight Filtered Tx", robot.vision.getFilteredTargetX(VISION_ALPHA));
+            telemetry.addData("Limelight Filtered Tx", robot.vision.getFilteredTargetX(FindingBallConfig.VISION_ALPHA));
             telemetry.addData("Limelight Target Y (ty)", robot.vision.getTargetY());
         }
 

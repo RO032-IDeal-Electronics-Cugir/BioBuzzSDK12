@@ -3,25 +3,17 @@ package org.firstinspires.ftc.teamcode.commands;
 import com.pedropathing.ivy.Command;
 import com.pedropathing.ivy.CommandBuilder;
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.configurables.FindingBallConfig;
 import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
 import org.firstinspires.ftc.teamcode.util.PDController;
 
 public class VisionAlignCommand {
     private final Robot robot;
     private final PDController pdController;
-    private double alpha = 0.15; // Default EMA smoothing factor matching VisionAlignTeleOp.VISION_ALPHA
 
     public VisionAlignCommand(Robot robot, PDController pdController) {
         this.robot = robot;
         this.pdController = pdController;
-    }
-
-    public void setAlpha(double alpha) {
-        this.alpha = alpha;
-    }
-
-    public double getAlpha() {
-        return alpha;
     }
 
     public void start() {
@@ -37,13 +29,9 @@ public class VisionAlignCommand {
     }
 
     public void execute(double forward, double strafe) {
-        execute(forward, strafe, pdController.getTolerance(), alpha);
-    }
-
-    public void execute(double forward, double strafe, double tolerance, double alpha) {
         if (robot.vision != null && robot.vision.hasTarget()) {
-            double error = robot.vision.getFilteredTargetX(alpha);
-            double turn = pdController.calculate(error, tolerance);
+            double error = robot.vision.getFilteredTargetX(FindingBallConfig.VISION_ALPHA);
+            double turn = pdController.calculate(error, FindingBallConfig.TOLERANCE_DEGREES);
             robot.drivetrain.drive(forward, strafe, turn, false);
         } else {
             robot.drivetrain.drive(forward, strafe, 0.0, false);
@@ -51,12 +39,8 @@ public class VisionAlignCommand {
     }
 
     public boolean isAligned() {
-        return isAligned(pdController.getTolerance(), alpha);
-    }
-
-    public boolean isAligned(double tolerance, double alpha) {
         if (robot.vision != null && robot.vision.hasTarget()) {
-            return pdController.isWithinTolerance(robot.vision.getFilteredTargetX(alpha));
+            return pdController.isWithinTolerance(robot.vision.getFilteredTargetX(FindingBallConfig.VISION_ALPHA));
         }
         return false;
     }
