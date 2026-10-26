@@ -64,6 +64,9 @@ public class VisionAlignTeleOp extends RobotOpMode {
 
             boolean aligned = visionAlignCommand.isAligned();
             telemetry.addData("Vision Align", aligned ? "ALIGNED (In Tolerance)" : "ALIGNING (In Progress)");
+            if (aligned) {
+                telemetry.addData("Distance to Ball (cm)", String.format(java.util.Locale.US, "%.2f cm", robot.vision.getDistanceToTargetCm()));
+            }
         } else {
             robot.drivetrain.drive(forward, strafe, turn);
             telemetry.addData("Vision Align", "MANUAL (Goal Pipeline 0)");

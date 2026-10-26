@@ -7,6 +7,7 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.teamcode.configurables.FindingBallConfig;
 
 import static com.pedropathing.ivy.commands.Commands.infinite;
 
@@ -22,6 +23,7 @@ public class VisionSubsystem {
 
     // EMA Filter State
     private double filteredTx = 0.0;
+    private double filteredTy = 0.0;
     private boolean isFilterInitialized = false;
 
     public VisionSubsystem(HardwareMap hardwareMap) {
@@ -64,6 +66,7 @@ public class VisionSubsystem {
         double rawTx = getTargetX();
         if (!isFilterInitialized) {
             filteredTx = rawTx;
+            filteredTy = getTargetY();
             isFilterInitialized = true;
         } else {
             // EMA formula: filtered = alpha * raw + (1 - alpha) * filtered
@@ -73,13 +76,42 @@ public class VisionSubsystem {
         return filteredTx;
     }
 
+    public double getFilteredTargetY(double alpha) {
+        if (!hasTarget()) {
+            resetFilter();
+            return 0.0;
+        }
+
+        double rawTy = getTargetY();
+        if (!isFilterInitialized) {
+            filteredTy = rawTy;
+            filteredTx = getTargetX();
+            isFilterInitialized = true;
+        } else {
+            alpha = Math.max(0.01, Math.min(1.0, alpha));
+            filteredTy = alpha * rawTy + (1.0 - alpha) * filteredTy;
+        }
+        return filteredTy;
+    }
+
     public void resetFilter() {
         filteredTx = 0.0;
+        filteredTy = 0.0;
         isFilterInitialized = false;
     }
 
     public double getTargetY() {
         return hasTarget() ? latestResult.getTy() : 0.0;
+    }
+
+    public double getDistanceToTargetCm() {
+        if (!hasTarget()) {
+            return 0.0;
+        }
+        double ty = getFilteredTargetY(FindingBallConfig.VISION_ALPHA);
+        double totalAngleRad = Math.toRadians(FindingBallConfig.CAMERA_PITCH_DEGREES - ty);
+        double deltaH = FindingBallConfig.BALL_CENTER_HEIGHT_CM - FindingBallConfig.CAMERA_HEIGHT_CM;
+        return Math.abs(deltaH / Math.tan(totalAngleRad));
     }
 
     public Pose3D getBotPose() {
