@@ -119,7 +119,7 @@ public class VisionAlignTeleOp extends RobotOpMode {
         telemetry.addData("Limelight Target", robot.vision != null && robot.vision.hasTarget());
         if (robot.vision != null && robot.vision.hasTarget()) {
             telemetry.addData("Limelight Raw Tx", robot.vision.getTargetX());
-            telemetry.addData("Limelight Filtered Tx", robot.vision.getFilteredTargetX(FindingBallConfig.VISION_ALPHA));
+            telemetry.addData("Limelight Filtered Tx", robot.vision.getFilteredTargetX());
             telemetry.addData("Limelight Target Y (ty)", robot.vision.getTargetY());
         }
 

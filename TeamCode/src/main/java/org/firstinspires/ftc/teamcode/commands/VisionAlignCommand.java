@@ -30,7 +30,7 @@ public class VisionAlignCommand {
 
     public void execute(double forward, double strafe) {
         if (robot.vision != null && robot.vision.hasTarget()) {
-            double error = robot.vision.getFilteredTargetX(FindingBallConfig.VISION_ALPHA);
+            double error = robot.vision.getFilteredTargetX();
             double turn = pdController.calculate(error, FindingBallConfig.TOLERANCE_DEGREES);
             robot.drivetrain.drive(forward, strafe, turn, false);
         } else {
@@ -40,7 +40,7 @@ public class VisionAlignCommand {
 
     public boolean isAligned() {
         if (robot.vision != null && robot.vision.hasTarget()) {
-            return pdController.isWithinTolerance(robot.vision.getFilteredTargetX(FindingBallConfig.VISION_ALPHA));
+            return pdController.isWithinTolerance(robot.vision.getFilteredTargetX());
         }
         return false;
     }
@@ -55,6 +55,7 @@ public class VisionAlignCommand {
         return new CommandBuilder()
                 .setStart(this::start)
                 .setExecute(this::execute)
-                .setDone(() -> false);
+                .setDone(this::isAligned)
+                .setEnd(endCondition -> stop());
     }
 }

@@ -47,6 +47,24 @@ public class VisionSubsystem {
         if (limelight != null) {
             latestResult = limelight.getLatestResult();
         }
+
+        if (hasTarget()) {
+            double rawTx = getTargetX();
+            double rawTy = getTargetY();
+            double alpha = Math.max(0.01, Math.min(1.0, FindingBallConfig.VISION_ALPHA));
+
+            if (!isFilterInitialized) {
+                filteredTx = rawTx;
+                filteredTy = rawTy;
+                isFilterInitialized = true;
+            } else {
+                // EMA formula: filtered = alpha * raw + (1 - alpha) * filtered
+                filteredTx = alpha * rawTx + (1.0 - alpha) * filteredTx;
+                filteredTy = alpha * rawTy + (1.0 - alpha) * filteredTy;
+            }
+        } else {
+            resetFilter();
+        }
     }
 
     public boolean hasTarget() {
@@ -57,40 +75,11 @@ public class VisionSubsystem {
         return hasTarget() ? latestResult.getTx() : 0.0;
     }
 
-    public double getFilteredTargetX(double alpha) {
-        if (!hasTarget()) {
-            resetFilter();
-            return 0.0;
-        }
-
-        double rawTx = getTargetX();
-        if (!isFilterInitialized) {
-            filteredTx = rawTx;
-            filteredTy = getTargetY();
-            isFilterInitialized = true;
-        } else {
-            // EMA formula: filtered = alpha * raw + (1 - alpha) * filtered
-            alpha = Math.max(0.01, Math.min(1.0, alpha));
-            filteredTx = alpha * rawTx + (1.0 - alpha) * filteredTx;
-        }
+    public double getFilteredTargetX() {
         return filteredTx;
     }
 
-    public double getFilteredTargetY(double alpha) {
-        if (!hasTarget()) {
-            resetFilter();
-            return 0.0;
-        }
-
-        double rawTy = getTargetY();
-        if (!isFilterInitialized) {
-            filteredTy = rawTy;
-            filteredTx = getTargetX();
-            isFilterInitialized = true;
-        } else {
-            alpha = Math.max(0.01, Math.min(1.0, alpha));
-            filteredTy = alpha * rawTy + (1.0 - alpha) * filteredTy;
-        }
+    public double getFilteredTargetY() {
         return filteredTy;
     }
 
@@ -108,7 +97,7 @@ public class VisionSubsystem {
         if (!hasTarget()) {
             return 0.0;
         }
-        double ty = getFilteredTargetY(FindingBallConfig.VISION_ALPHA);
+        double ty = getFilteredTargetY();
         double totalAngleRad = Math.toRadians(FindingBallConfig.CAMERA_PITCH_DEGREES - ty);
         double deltaH = FindingBallConfig.BALL_CENTER_HEIGHT_CM - FindingBallConfig.CAMERA_HEIGHT_CM;
         return Math.abs(deltaH / Math.tan(totalAngleRad));

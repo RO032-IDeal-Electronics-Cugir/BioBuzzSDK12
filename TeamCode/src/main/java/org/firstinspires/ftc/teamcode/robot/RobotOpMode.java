@@ -25,13 +25,11 @@ public abstract class RobotOpMode extends OpMode {
     @Override
     public void init_loop() {
         Scheduler.execute();
-        robot.update();
         robot.updateTelemetry();
     }
 
     @Override
     public void loop() {
         Scheduler.execute();
-        robot.update();
     }
 }
