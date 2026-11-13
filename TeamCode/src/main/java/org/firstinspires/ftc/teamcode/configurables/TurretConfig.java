@@ -33,8 +33,8 @@ public class TurretConfig {
     public static double MIN_LIMIT_DEG = -180.0;
 
     // Sensuri Direcții & Inversări (Bifabil din Panels)
-    public static boolean INVERT_ENCODER = true;
-    public static boolean INVERT_SERVO = false;
+    public static boolean INVERT_ENCODER = false;
+    public static boolean INVERT_SERVO = true;
     public static boolean ENABLED_IN_INIT = false;
 
     // Linia de mijloc și marja de histerezis pentru schimbarea coșului (sus/jos)
