@@ -16,6 +16,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.configurables.TurretConfig;
+import org.firstinspires.ftc.teamcode.robot.Alliance;
 
 @Autonomous(name = "Robot Auto Command-Based", group = "Autonomous")
 public class AutoOpMode extends LinearOpMode {
@@ -26,14 +28,57 @@ public class AutoOpMode extends LinearOpMode {
         Scheduler.reset();
         robot = new Robot(hardwareMap);
 
+        schedule(
+                robot.drivetrain.periodic(),
+                robot.intake.periodic(),
+                robot.shooter.periodic(),
+                robot.vision.periodic(),
+                robot.turret.periodic()
+        );
+
         Follower follower = robot.drivetrain.getFollower();
+        Pose startPose = new Pose(
+                TurretConfig.RED_START_X,
+                TurretConfig.RED_START_Y,
+                Math.toRadians(TurretConfig.RED_START_HEADING_DEG)
+        );
+
         if (follower != null) {
-            follower.setPose(new Pose(0, 0, 0));
+            follower.setPose(startPose);
         }
 
-        Path path1 = line(new Pose(0, 0, 0), new Pose(24, 0, 0)).constant(0);
+        while (!isStarted() && !isStopRequested()) {
+            if (gamepad1.b || gamepad2.left_bumper) {
+                robot.setAlliance(Alliance.RED);
+                startPose = new Pose(
+                        TurretConfig.RED_START_X,
+                        TurretConfig.RED_START_Y,
+                        Math.toRadians(TurretConfig.RED_START_HEADING_DEG)
+                );
+                if (follower != null) follower.setPose(startPose);
+            } else if (gamepad1.x || gamepad2.right_bumper) {
+                robot.setAlliance(Alliance.BLUE);
+                startPose = new Pose(
+                        TurretConfig.BLUE_START_X,
+                        TurretConfig.BLUE_START_Y,
+                        Math.toRadians(TurretConfig.BLUE_START_HEADING_DEG)
+                );
+                if (follower != null) follower.setPose(startPose);
+            }
 
-        waitForStart();
+            telemetry.addData("Selected Alliance", robot.getAlliance());
+            telemetry.addData("Start Pose", startPose);
+            telemetry.update();
+            idle();
+        }
+
+        if (isStopRequested()) return;
+
+        if (robot != null && robot.turret != null) {
+            robot.turret.setOpModeActive(true);
+        }
+
+        Path path1 = line(startPose, new Pose(startPose.x() + 24, startPose.y(), startPose.heading())).constant(startPose.heading());
 
         schedule(sequential(
                 parallel(

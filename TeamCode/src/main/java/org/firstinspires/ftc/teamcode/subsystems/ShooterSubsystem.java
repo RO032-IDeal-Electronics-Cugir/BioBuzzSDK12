@@ -66,6 +66,16 @@ public class ShooterSubsystem {
         targetPower = Math.max(0.0, targetPower - delta);
     }
 
+    public void updatePowerForDistance(double distanceInches) {
+        double clampedDistance = Math.max(org.firstinspires.ftc.teamcode.configurables.TurretConfig.MIN_DISTANCE_INCHES,
+                                 Math.min(org.firstinspires.ftc.teamcode.configurables.TurretConfig.MAX_DISTANCE_INCHES, distanceInches));
+        double ratio = (clampedDistance - org.firstinspires.ftc.teamcode.configurables.TurretConfig.MIN_DISTANCE_INCHES) /
+                       (org.firstinspires.ftc.teamcode.configurables.TurretConfig.MAX_DISTANCE_INCHES - org.firstinspires.ftc.teamcode.configurables.TurretConfig.MIN_DISTANCE_INCHES);
+
+        targetPower = org.firstinspires.ftc.teamcode.configurables.TurretConfig.MIN_SHOOTER_POWER + ratio *
+                      (org.firstinspires.ftc.teamcode.configurables.TurretConfig.MAX_SHOOTER_POWER - org.firstinspires.ftc.teamcode.configurables.TurretConfig.MIN_SHOOTER_POWER);
+    }
+
     public Command periodic() {
         return infinite(() -> {
             if (isRunning) {

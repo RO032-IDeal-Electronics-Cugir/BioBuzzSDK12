@@ -1,10 +1,13 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.commands.VisionAlignCommand;
 import org.firstinspires.ftc.teamcode.configurables.FindingBallConfig;
+import org.firstinspires.ftc.teamcode.configurables.TurretConfig;
 import org.firstinspires.ftc.teamcode.robot.Alliance;
 import org.firstinspires.ftc.teamcode.robot.RobotOpMode;
+import org.firstinspires.ftc.teamcode.subsystems.TurretSubsystem;
 import org.firstinspires.ftc.teamcode.util.PDController;
 
 @TeleOp(name = "Vision Align TeleOp (Command-Based)", group = "Competition")
@@ -28,8 +31,39 @@ public class VisionAlignTeleOp extends RobotOpMode {
         // Retine pozitia de la autonom daca exista
         robot.drivetrain.usePreviousStartingPose();
 
-        telemetry.addData("Status", "Vision Align TeleOp Initialized (PS Controllers)");
+        telemetry.addData("Status", "Vision Align TeleOp Initialized (Gamepad 2 L1/R1 = Alliance)");
         telemetry.update();
+    }
+
+    @Override
+    public void init_loop() {
+        super.init_loop();
+
+        // Gamepad 2 - Selecție Alianță în faza Init (L1 = RED, R1 = BLUE)
+        if (gamepad2.leftBumperWasPressed()) {
+            robot.setAlliance(Alliance.RED);
+            if (robot.drivetrain.getFollower() != null) {
+                robot.drivetrain.setStartingPose(new Pose(
+                        TurretConfig.RED_START_X,
+                        TurretConfig.RED_START_Y,
+                        Math.toRadians(TurretConfig.RED_START_HEADING_DEG)
+                ));
+            }
+        } else if (gamepad2.rightBumperWasPressed()) {
+            robot.setAlliance(Alliance.BLUE);
+            if (robot.drivetrain.getFollower() != null) {
+                robot.drivetrain.setStartingPose(new Pose(
+                        TurretConfig.BLUE_START_X,
+                        TurretConfig.BLUE_START_Y,
+                        Math.toRadians(TurretConfig.BLUE_START_HEADING_DEG)
+                ));
+            }
+        }
+
+        telemetry.addData("Selected Alliance (Gamepad2 L1/R1)", robot.getAlliance());
+        if (robot.drivetrain.getFollower() != null) {
+            telemetry.addData("Current Pose", robot.drivetrain.getPose());
+        }
     }
 
     @Override
@@ -92,10 +126,36 @@ public class VisionAlignTeleOp extends RobotOpMode {
 
         // Gamepad 2 - Schimbare Alianță (L1 = RED, R1 = BLUE)
         if (gamepad2.leftBumperWasPressed()) {
-            Alliance.current = Alliance.RED;
+            robot.setAlliance(Alliance.RED);
         }
         if (gamepad2.rightBumperWasPressed()) {
-            Alliance.current = Alliance.BLUE;
+            robot.setAlliance(Alliance.BLUE);
+        }
+
+        // Gamepad 2 - Control Moduri Turelă (Cross = AUTO_AIM, Square = LOCK_FORWARD, Circle = MANUAL)
+        if (gamepad2.crossWasPressed()) {
+            robot.turret.setMode(TurretSubsystem.Mode.AUTO_AIM);
+        } else if (gamepad2.squareWasPressed()) {
+            robot.turret.setMode(TurretSubsystem.Mode.LOCK_FORWARD);
+        } else if (gamepad2.circleWasPressed()) {
+            robot.turret.setMode(TurretSubsystem.Mode.MANUAL);
+        }
+
+        // Gamepad 2 - Ajustare Manuală Turelă în Modul MANUAL
+        if (robot.turret.getMode() == TurretSubsystem.Mode.MANUAL) {
+            if (gamepad2.dpad_left) {
+                robot.turret.adjustManualAngle(-1.0);
+            } else if (gamepad2.dpad_right) {
+                robot.turret.adjustManualAngle(1.0);
+            }
+        } else {
+            // Gamepad 2 - Ajustare Putere Shooter (DPad Up / Down) când nu e în modul manual al turelei
+            if (gamepad2.dpadUpWasPressed()) {
+                robot.shooter.increasePower(0.05);
+            }
+            if (gamepad2.dpadDownWasPressed()) {
+                robot.shooter.decreasePower(0.05);
+            }
         }
 
         // Gamepad 2 - Reset Heading Field-Centric (Triangle)
@@ -103,16 +163,14 @@ public class VisionAlignTeleOp extends RobotOpMode {
             robot.drivetrain.resetHeading();
         }
 
-        // Gamepad 2 - Ajustare Putere Shooter (DPad Up / Down)
-        if (gamepad2.dpadUpWasPressed()) {
-            robot.shooter.increasePower(0.05);
-        }
-        if (gamepad2.dpadDownWasPressed()) {
-            robot.shooter.decreasePower(0.05);
-        }
+        // Actualizare stări robot (update distanță shooter etc.)
+        robot.update();
 
         // Telemetrie OpMode
-        telemetry.addData("Alliance", Alliance.current);
+        telemetry.addData("Alliance", robot.getAlliance());
+        telemetry.addData("Turret Mode", robot.turret.getMode());
+        telemetry.addData("Turret Angle", String.format(java.util.Locale.US, "%.1f deg", robot.turret.getTurretAngleDeg()));
+        telemetry.addData("Turret Distance", String.format(java.util.Locale.US, "%.1f in", robot.turret.getCurrentDistanceInches()));
         telemetry.addData("Feedforward kF", FindingBallConfig.F_GAIN);
         telemetry.addData("Tolerance (deg)", FindingBallConfig.TOLERANCE_DEGREES);
         telemetry.addData("Vision Alpha", FindingBallConfig.VISION_ALPHA);

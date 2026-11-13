@@ -18,7 +18,8 @@ public abstract class RobotOpMode extends OpMode {
                 robot.drivetrain.periodic(),
                 robot.intake.periodic(),
                 robot.shooter.periodic(),
-                robot.vision.periodic()
+                robot.vision.periodic(),
+                robot.turret.periodic()
         );
     }
 
@@ -26,6 +27,13 @@ public abstract class RobotOpMode extends OpMode {
     public void init_loop() {
         Scheduler.execute();
         robot.updateTelemetry();
+    }
+
+    @Override
+    public void start() {
+        if (robot != null && robot.turret != null) {
+            robot.turret.setOpModeActive(true);
+        }
     }
 
     @Override
