@@ -18,9 +18,9 @@ public class TurretConfig {
     public static double BLUE_GOAL_TOP_Y = 84.0;
 
     // Pozițiile de start standard (X inchi, Y inchi, Heading grade)
-    public static double RED_START_X = 12.0;
-    public static double RED_START_Y = 36.0;
-    public static double RED_START_HEADING_DEG = 0.0;
+    public static double RED_START_X = 58.0;
+    public static double RED_START_Y = 8.0;
+    public static double RED_START_HEADING_DEG = 90.0;
 
     public static double BLUE_START_X = 132.0;
     public static double BLUE_START_Y = 36.0;
