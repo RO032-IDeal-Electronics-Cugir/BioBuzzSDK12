@@ -200,12 +200,26 @@ public class TurretSubsystem {
 
             double currentAngleDeg = getTurretAngleDeg();
 
-            // Smart Cable Unwinding: Normalizare in [-180, +180] grade
-            while (targetAngleDeg > 180.0) targetAngleDeg -= 360.0;
-            while (targetAngleDeg < -180.0) targetAngleDeg += 360.0;
+            // Smart Cable Unwinding bazat pe limitele configurate (MIN_LIMIT_DEG / MAX_LIMIT_DEG)
+            double delta = Math.IEEEremainder(targetAngleDeg - currentAngleDeg, 360.0);
+            double candidateAngleDeg = currentAngleDeg + delta;
 
-            // Clamping mecanic de siguranta
-            targetAngleDeg = Math.max(TurretConfig.MIN_LIMIT_DEG, Math.min(TurretConfig.MAX_LIMIT_DEG, targetAngleDeg));
+            if (candidateAngleDeg > TurretConfig.MAX_LIMIT_DEG) {
+                if (candidateAngleDeg - 360.0 >= TurretConfig.MIN_LIMIT_DEG) {
+                    targetAngleDeg = candidateAngleDeg - 360.0;
+                } else {
+                    targetAngleDeg = TurretConfig.MAX_LIMIT_DEG;
+                }
+            } else if (candidateAngleDeg < TurretConfig.MIN_LIMIT_DEG) {
+                if (candidateAngleDeg + 360.0 <= TurretConfig.MAX_LIMIT_DEG) {
+                    targetAngleDeg = candidateAngleDeg + 360.0;
+                } else {
+                    targetAngleDeg = TurretConfig.MIN_LIMIT_DEG;
+                }
+            } else {
+                targetAngleDeg = candidateAngleDeg;
+            }
+
             currentTargetAngleDeg = targetAngleDeg;
 
             // Calcul Controller PD pentru Axon CRServo

@@ -29,8 +29,8 @@ public class TurretConfig {
     // Parametri Mecanici & Senzori Turelă
     public static double TURRET_OFFSET_Y_CM = -10.0; // 10 cm în spatele centrului robotului
     public static double TICKS_PER_TURRET_REV = 24576.0; // 3 rotiri servo * 8192 tick-uri encoder REV
-    public static double MAX_LIMIT_DEG = 180.0;
-    public static double MIN_LIMIT_DEG = -180.0;
+    public static double MAX_LIMIT_DEG = 270.0;
+    public static double MIN_LIMIT_DEG = -270.0;
 
     // Sensuri Direcții & Inversări (Bifabil din Panels)
     public static boolean INVERT_ENCODER = false;
@@ -42,7 +42,7 @@ public class TurretConfig {
     public static double HYSTERESIS_MARGIN = 5.0;
 
     // Parametri Controller PD pentru Axon CRServo
-    public static double P_GAIN = 0.02;
+    public static double P_GAIN = 0.03;
     public static double D_GAIN = 0.001;
     public static double TOLERANCE_DEG = 1.0;
 

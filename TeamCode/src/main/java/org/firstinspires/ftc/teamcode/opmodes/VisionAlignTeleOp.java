@@ -163,6 +163,6 @@ public class VisionAlignTeleOp extends RobotOpMode {
         robot.update();
 
         // Transmisie Unică Telemetrie la Finalul Buclei (Match Mode)
-        robot.updateTelemetry(Robot.RobotTelemetryMode.MATCH);
+        robot.updateTelemetry(Robot.RobotTelemetryMode.DEBUG_TURRET);
     }
 }
