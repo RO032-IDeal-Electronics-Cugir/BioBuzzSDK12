@@ -21,7 +21,8 @@ public class ShooterSubsystem {
 
     public static double targetPower = 0.85;
 
-    private DcMotor shooterMotor;
+    private DcMotor pollenMotor;
+    private DcMotor nectarMotor;
     private Telemetry telemetry;
     private boolean isRunning = false;
 
@@ -32,16 +33,24 @@ public class ShooterSubsystem {
     public ShooterSubsystem(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
         try {
-            shooterMotor = hardwareMap.get(DcMotor.class, "shooterMotor");
-            shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+            pollenMotor = hardwareMap.get(DcMotor.class, "pollenMotor");
+            nectarMotor = hardwareMap.get(DcMotor.class, "nectarMotor");
+            pollenMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            nectarMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            pollenMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+            nectarMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         } catch (Exception e) {
-            shooterMotor = null;
+            pollenMotor = null;
+            nectarMotor = null;
         }
     }
 
     public void setPower(double power) {
-        if (shooterMotor != null) {
-            shooterMotor.setPower(power);
+        if (pollenMotor != null) {
+            pollenMotor.setPower(power);
+        }
+        if (nectarMotor != null) {
+            nectarMotor.setPower(power);
         }
     }
 
