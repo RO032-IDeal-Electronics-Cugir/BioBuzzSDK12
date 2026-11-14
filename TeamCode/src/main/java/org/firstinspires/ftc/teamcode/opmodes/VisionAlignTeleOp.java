@@ -21,6 +21,8 @@ public class VisionAlignTeleOp extends RobotOpMode {
     public void init() {
         super.init();
 
+        Alliance.isAllianceSelected = false;
+
         pdController = new PDController(
                 FindingBallConfig.P_GAIN,
                 FindingBallConfig.D_GAIN,
@@ -31,9 +33,6 @@ public class VisionAlignTeleOp extends RobotOpMode {
 
         // Retine pozitia de la autonom daca exista
         robot.drivetrain.usePreviousStartingPose();
-
-        telemetry.addData("Status", "Vision Align TeleOp Initialized (Gamepad 2 L1/R1 = Alliance)");
-        telemetry.update();
     }
 
     @Override
@@ -61,9 +60,17 @@ public class VisionAlignTeleOp extends RobotOpMode {
             }
         }
 
-        telemetry.addData("Selected Alliance (Gamepad2 L1/R1)", robot.getAlliance());
-        if (robot.drivetrain.getFollower() != null) {
-            telemetry.addData("Current Pose", robot.drivetrain.getPose());
+        robot.updateTelemetry(Robot.RobotTelemetryMode.INIT);
+    }
+
+    @Override
+    public void start() {
+        super.start();
+
+        // Măsură de siguranță: dacă alianța nu a fost selectată explicit în Init,
+        // forțăm turela în modul LOCK_FORWARD (drept înainte) pentru a preveni rotirea necontrolată!
+        if (!Alliance.isAllianceSelected) {
+            robot.turret.setMode(TurretSubsystem.Mode.LOCK_FORWARD);
         }
     }
 
@@ -163,6 +170,6 @@ public class VisionAlignTeleOp extends RobotOpMode {
         robot.update();
 
         // Transmisie Unică Telemetrie la Finalul Buclei (Match Mode)
-        robot.updateTelemetry(Robot.RobotTelemetryMode.DEBUG_TURRET);
+        robot.updateTelemetry(Robot.RobotTelemetryMode.MATCH);
     }
 }

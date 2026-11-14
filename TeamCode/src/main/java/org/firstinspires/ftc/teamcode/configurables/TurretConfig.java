@@ -22,9 +22,9 @@ public class TurretConfig {
     public static double RED_START_Y = 8.0;
     public static double RED_START_HEADING_DEG = 90.0;
 
-    public static double BLUE_START_X = 132.0;
-    public static double BLUE_START_Y = 36.0;
-    public static double BLUE_START_HEADING_DEG = 180.0;
+    public static double BLUE_START_X = 84.0;
+    public static double BLUE_START_Y = 8.0;
+    public static double BLUE_START_HEADING_DEG = 90.0;
 
     // Parametri Mecanici & Senzori Turelă
     public static double TURRET_OFFSET_Y_CM = -10.0; // 10 cm în spatele centrului robotului

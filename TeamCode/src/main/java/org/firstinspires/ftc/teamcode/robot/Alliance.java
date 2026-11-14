@@ -5,4 +5,5 @@ public enum Alliance {
     BLUE;
 
     public static Alliance current = RED;
+    public static boolean isAllianceSelected = false;
 }

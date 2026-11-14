@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
 public class Robot {
 
     public enum RobotTelemetryMode {
+        INIT,
         MATCH,
         DEBUG_ALL,
         DEBUG_TURRET,
@@ -61,6 +62,7 @@ public class Robot {
 
     public void setAlliance(Alliance alliance) {
         Alliance.current = alliance;
+        Alliance.isAllianceSelected = true;
         if (turret != null) {
             turret.setAlliance(alliance);
         }
@@ -92,6 +94,20 @@ public class Robot {
         telemetry.addData("Alliance", getAlliance());
 
         switch (mode) {
+            case INIT:
+                if (Alliance.isAllianceSelected) {
+                    telemetry.addData("Status", "✅ ALIANȚĂ SELECTATĂ (" + getAlliance() + ")");
+                    if (drivetrain != null && drivetrain.getFollower() != null) {
+                        com.pedropathing.math.Pose pose = drivetrain.getPose();
+                        telemetry.addData("Start Pose", String.format(java.util.Locale.US, "X: %.1f in, Y: %.1f in, H: %.1f°", pose.x(), pose.y(), Math.toDegrees(pose.heading())));
+                    }
+                    telemetry.addData("Info", "Robot pregătit. Apasă PLAY!");
+                } else {
+                    telemetry.addData("Status", "⚠️ ALIANȚĂ NESELECTATĂ!");
+                    telemetry.addData("Atenție", "Apasă Gamepad 2 L1 (RED) sau R1 (BLUE)!");
+                }
+                break;
+
             case MATCH:
                 if (drivetrain != null) drivetrain.printTelemetry(telemetry, DrivetrainSubsystem.TelemetryLevel.MATCH);
                 if (turret != null) turret.printTelemetry(telemetry, TurretSubsystem.TelemetryLevel.MATCH);

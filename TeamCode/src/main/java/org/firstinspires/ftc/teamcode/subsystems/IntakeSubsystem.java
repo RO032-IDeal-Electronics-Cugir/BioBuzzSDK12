@@ -26,8 +26,10 @@ public class IntakeSubsystem {
     public static double slowPower = 0.5;
     public static double reversePower = -1.0;
     public static long shortReverseTimeMs = 150;
+    public static boolean reverseTransferMotor = false;
 
     private DcMotor intakeMotor;
+    private DcMotor transferMotor;
     private Telemetry telemetry;
 
     private Mode mode = Mode.OFF;
@@ -45,6 +47,13 @@ public class IntakeSubsystem {
         } catch (Exception e) {
             intakeMotor = null;
         }
+
+        try {
+            transferMotor = hardwareMap.get(DcMotor.class, "transferMotor");
+            transferMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        } catch (Exception e) {
+            transferMotor = null;
+        }
     }
 
     public void setMode(Mode mode) {
@@ -58,6 +67,9 @@ public class IntakeSubsystem {
     public void setPower(double power) {
         if (intakeMotor != null) {
             intakeMotor.setPower(power);
+        }
+        if (transferMotor != null) {
+            transferMotor.setPower(reverseTransferMotor ? -power : power);
         }
     }
 
@@ -121,6 +133,10 @@ public class IntakeSubsystem {
         if (telemetry == null || level == TelemetryLevel.NONE) return;
 
         telemetry.addData("Intake Mode", mode + (slowMode ? " (SLOW)" : ""));
+        if (level == TelemetryLevel.DEBUG) {
+            telemetry.addData("Intake Motor Connected", intakeMotor != null);
+            telemetry.addData("Transfer Motor Connected", transferMotor != null);
+        }
     }
 
     public enum Mode {
