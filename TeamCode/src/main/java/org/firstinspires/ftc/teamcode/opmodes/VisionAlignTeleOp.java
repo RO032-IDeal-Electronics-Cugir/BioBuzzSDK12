@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.commands.VisionAlignCommand;
 import org.firstinspires.ftc.teamcode.configurables.FindingBallConfig;
 import org.firstinspires.ftc.teamcode.configurables.TurretConfig;
@@ -95,15 +96,10 @@ public class VisionAlignTeleOp extends RobotOpMode {
 
         if (gamepad1.right_bumper) {
             visionAlignCommand.execute(forward, strafe);
-
             boolean aligned = visionAlignCommand.isAligned();
-            telemetry.addData("Vision Align", aligned ? "ALIGNED (In Tolerance)" : "ALIGNING (In Progress)");
-            if (aligned) {
-                telemetry.addData("Distance to Ball (cm)", String.format(java.util.Locale.US, "%.2f cm", robot.vision.getDistanceToTargetCm()));
-            }
+            telemetry.addData("Vision Align", aligned ? "ALIGNED" : "ALIGNING");
         } else {
             robot.drivetrain.drive(forward, strafe, turn);
-            telemetry.addData("Vision Align", "MANUAL (Goal Pipeline 0)");
         }
 
         // Gamepad 1 - Intake Control (Cross = In, Circle = Out, L1 = Short Reverse)
@@ -166,22 +162,7 @@ public class VisionAlignTeleOp extends RobotOpMode {
         // Actualizare stări robot (update distanță shooter etc.)
         robot.update();
 
-        // Telemetrie OpMode
-        telemetry.addData("Alliance", robot.getAlliance());
-        telemetry.addData("Turret Mode", robot.turret.getMode());
-        telemetry.addData("Turret Angle", String.format(java.util.Locale.US, "%.1f deg", robot.turret.getTurretAngleDeg()));
-        telemetry.addData("Turret Distance", String.format(java.util.Locale.US, "%.1f in", robot.turret.getCurrentDistanceInches()));
-        telemetry.addData("Feedforward kF", FindingBallConfig.F_GAIN);
-        telemetry.addData("Tolerance (deg)", FindingBallConfig.TOLERANCE_DEGREES);
-        telemetry.addData("Vision Alpha", FindingBallConfig.VISION_ALPHA);
-        telemetry.addData("Limelight Target", robot.vision != null && robot.vision.hasTarget());
-        if (robot.vision != null && robot.vision.hasTarget()) {
-            telemetry.addData("Limelight Raw Tx", robot.vision.getTargetX());
-            telemetry.addData("Limelight Filtered Tx", robot.vision.getFilteredTargetX());
-            telemetry.addData("Limelight Target Y (ty)", robot.vision.getTargetY());
-        }
-
-        // Transmisie Unică Telemetrie la Finalul Buclei
-        robot.updateTelemetry();
+        // Transmisie Unică Telemetrie la Finalul Buclei (Match Mode)
+        robot.updateTelemetry(Robot.RobotTelemetryMode.MATCH);
     }
 }

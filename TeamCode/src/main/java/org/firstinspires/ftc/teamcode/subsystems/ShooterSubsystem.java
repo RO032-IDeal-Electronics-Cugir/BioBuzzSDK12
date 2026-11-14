@@ -12,6 +12,13 @@ import static com.pedropathing.ivy.commands.Commands.infinite;
 @Config
 @Configurable
 public class ShooterSubsystem {
+
+    public enum TelemetryLevel {
+        NONE,
+        MATCH,
+        DEBUG
+    }
+
     public static double targetPower = 0.85;
 
     private DcMotor shooterMotor;
@@ -83,11 +90,16 @@ public class ShooterSubsystem {
             } else {
                 setPower(0.0);
             }
-
-            if (telemetry != null) {
-                telemetry.addData("Shooter Running", isRunning);
-                telemetry.addData("Shooter Target Power", targetPower);
-            }
         });
+    }
+
+    public void printTelemetry(Telemetry telemetry, TelemetryLevel level) {
+        if (telemetry == null || level == TelemetryLevel.NONE) return;
+
+        telemetry.addData("Shooter Status", isRunning ? String.format(java.util.Locale.US, "ON (%.2f)", targetPower) : "OFF");
+
+        if (level == TelemetryLevel.DEBUG) {
+            telemetry.addData("Shooter Target Power", targetPower);
+        }
     }
 }

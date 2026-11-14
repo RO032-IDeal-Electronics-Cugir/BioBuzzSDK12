@@ -16,6 +16,13 @@ import static com.pedropathing.ivy.commands.Commands.infinite;
 
 @Config
 public class DrivetrainSubsystem {
+
+    public enum TelemetryLevel {
+        NONE,
+        MATCH,
+        DEBUG
+    }
+
     private static Pose poseTransfer = Pose.zero();
 
     private Follower follower;
@@ -190,16 +197,18 @@ public class DrivetrainSubsystem {
     }
 
     public Command periodic() {
-        return infinite(() -> {
-            update();
-            if (telemetry != null) {
-                Pose currentPose = getPose();
-                telemetry.addData("Robot X", currentPose.x());
-                telemetry.addData("Robot Y", currentPose.y());
-                telemetry.addData("Heading (deg)", Math.toDegrees(currentPose.heading()));
-                telemetry.addData("Drive Mode", isFieldCentric ? "FIELD-CENTRIC" : "ROBOT-CENTRIC");
-            }
-        });
+        return infinite(this::update);
+    }
+
+    public void printTelemetry(Telemetry telemetry, TelemetryLevel level) {
+        if (telemetry == null || level == TelemetryLevel.NONE) return;
+
+        telemetry.addData("Drive Mode", isFieldCentric ? "FIELD-CENTRIC" : "ROBOT-CENTRIC");
+
+        if (level == TelemetryLevel.DEBUG) {
+            Pose currentPose = getPose();
+            telemetry.addData("Robot Pose", String.format(java.util.Locale.US, "X: %.1f in, Y: %.1f in, H: %.1f°", currentPose.x(), currentPose.y(), Math.toDegrees(currentPose.heading())));
+        }
     }
 
     public boolean isBusy() {

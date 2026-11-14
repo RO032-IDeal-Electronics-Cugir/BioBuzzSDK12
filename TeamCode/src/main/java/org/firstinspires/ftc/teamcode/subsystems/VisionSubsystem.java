@@ -13,6 +13,13 @@ import static com.pedropathing.ivy.commands.Commands.infinite;
 
 @Config
 public class VisionSubsystem {
+
+    public enum TelemetryLevel {
+        NONE,
+        MATCH,
+        DEBUG
+    }
+
     public static final int GOAL_PIPELINE = 0; // AprilTags / Containere
     public static final int BALL_PIPELINE = 1; // Detector Culoare / Bile
 
@@ -134,14 +141,23 @@ public class VisionSubsystem {
     }
 
     public Command periodic() {
-        return infinite(() -> {
-            update();
-            if (telemetry != null) {
-                telemetry.addData("Limelight Target Found", hasTarget());
-                telemetry.addData("Limelight Raw Tx", getTargetX());
-                telemetry.addData("Limelight Ty", getTargetY());
-                telemetry.addData("Limelight Pipeline", currentPipeline);
-            }
-        });
+        return infinite(this::update);
+    }
+
+    public void printTelemetry(Telemetry telemetry, TelemetryLevel level) {
+        if (telemetry == null || level == TelemetryLevel.NONE) return;
+
+        boolean targetFound = hasTarget();
+        telemetry.addData("Limelight Target", targetFound ? "FOUND" : "NOT FOUND");
+        if (targetFound) {
+            telemetry.addData("Distance to Ball", String.format(java.util.Locale.US, "%.1f cm", getDistanceToTargetCm()));
+        }
+
+        if (level == TelemetryLevel.DEBUG) {
+            telemetry.addData("Limelight Pipeline", currentPipeline);
+            telemetry.addData("Limelight Raw Tx", getTargetX());
+            telemetry.addData("Limelight Filtered Tx", getFilteredTargetX());
+            telemetry.addData("Limelight Target Y (ty)", getTargetY());
+        }
     }
 }

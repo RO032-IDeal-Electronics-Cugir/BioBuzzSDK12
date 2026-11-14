@@ -15,6 +15,13 @@ import static com.pedropathing.ivy.groups.Groups.sequential;
 @Config
 @Configurable
 public class IntakeSubsystem {
+
+    public enum TelemetryLevel {
+        NONE,
+        MATCH,
+        DEBUG
+    }
+
     public static double fastPower = 1.0;
     public static double slowPower = 0.5;
     public static double reversePower = -1.0;
@@ -107,12 +114,13 @@ public class IntakeSubsystem {
             }
 
             setPower(power);
-
-            if (telemetry != null) {
-                telemetry.addData("Intake Mode", mode);
-                telemetry.addData("Intake SlowMode", slowMode);
-            }
         });
+    }
+
+    public void printTelemetry(Telemetry telemetry, TelemetryLevel level) {
+        if (telemetry == null || level == TelemetryLevel.NONE) return;
+
+        telemetry.addData("Intake Mode", mode + (slowMode ? " (SLOW)" : ""));
     }
 
     public enum Mode {

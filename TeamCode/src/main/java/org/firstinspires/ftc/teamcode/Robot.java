@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -14,6 +13,16 @@ import org.firstinspires.ftc.teamcode.subsystems.TurretSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
 
 public class Robot {
+
+    public enum RobotTelemetryMode {
+        MATCH,
+        DEBUG_ALL,
+        DEBUG_TURRET,
+        DEBUG_VISION,
+        DEBUG_DRIVETRAIN,
+        OFF
+    }
+
     public HardwareMap hardwareMap;
     public Telemetry telemetry;
 
@@ -27,7 +36,6 @@ public class Robot {
         this.hardwareMap = opMode.hardwareMap;
         this.telemetry = new MultipleTelemetry(
                 opMode.telemetry,
-                FtcDashboard.getInstance().getTelemetry(),
                 PanelsTelemetry.INSTANCE.getFtcTelemetry()
         );
 
@@ -75,8 +83,45 @@ public class Robot {
     }
 
     public void updateTelemetry() {
-        if (telemetry != null) {
-            telemetry.update();
+        updateTelemetry(RobotTelemetryMode.MATCH);
+    }
+
+    public void updateTelemetry(RobotTelemetryMode mode) {
+        if (telemetry == null || mode == RobotTelemetryMode.OFF) return;
+
+        telemetry.addData("Alliance", getAlliance());
+
+        switch (mode) {
+            case MATCH:
+                if (drivetrain != null) drivetrain.printTelemetry(telemetry, DrivetrainSubsystem.TelemetryLevel.MATCH);
+                if (turret != null) turret.printTelemetry(telemetry, TurretSubsystem.TelemetryLevel.MATCH);
+                if (vision != null) vision.printTelemetry(telemetry, VisionSubsystem.TelemetryLevel.MATCH);
+                if (shooter != null) shooter.printTelemetry(telemetry, ShooterSubsystem.TelemetryLevel.MATCH);
+                if (intake != null) intake.printTelemetry(telemetry, IntakeSubsystem.TelemetryLevel.MATCH);
+                break;
+
+            case DEBUG_TURRET:
+                if (turret != null) turret.printTelemetry(telemetry, TurretSubsystem.TelemetryLevel.DEBUG);
+                if (vision != null) vision.printTelemetry(telemetry, VisionSubsystem.TelemetryLevel.MATCH);
+                break;
+
+            case DEBUG_VISION:
+                if (vision != null) vision.printTelemetry(telemetry, VisionSubsystem.TelemetryLevel.DEBUG);
+                break;
+
+            case DEBUG_DRIVETRAIN:
+                if (drivetrain != null) drivetrain.printTelemetry(telemetry, DrivetrainSubsystem.TelemetryLevel.DEBUG);
+                break;
+
+            case DEBUG_ALL:
+                if (drivetrain != null) drivetrain.printTelemetry(telemetry, DrivetrainSubsystem.TelemetryLevel.DEBUG);
+                if (turret != null) turret.printTelemetry(telemetry, TurretSubsystem.TelemetryLevel.DEBUG);
+                if (vision != null) vision.printTelemetry(telemetry, VisionSubsystem.TelemetryLevel.DEBUG);
+                if (shooter != null) shooter.printTelemetry(telemetry, ShooterSubsystem.TelemetryLevel.DEBUG);
+                if (intake != null) intake.printTelemetry(telemetry, IntakeSubsystem.TelemetryLevel.DEBUG);
+                break;
         }
+
+        telemetry.update();
     }
 }

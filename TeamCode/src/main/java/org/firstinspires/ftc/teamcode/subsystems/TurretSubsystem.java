@@ -18,6 +18,12 @@ import static com.pedropathing.ivy.commands.Commands.infinite;
 @Configurable
 public class TurretSubsystem {
 
+    public enum TelemetryLevel {
+        NONE,
+        MATCH,
+        DEBUG
+    }
+
     public enum Mode {
         AUTO_AIM,
         LOCK_FORWARD,
@@ -44,6 +50,7 @@ public class TurretSubsystem {
     private long lastTimeNano = System.nanoTime();
     private double currentDistanceInches = 0.0;
     private double currentTargetAngleDeg = 0.0;
+    private double currentServoPower = 0.0;
 
     public TurretSubsystem(HardwareMap hardwareMap) {
         this(hardwareMap, null, null);
@@ -143,9 +150,6 @@ public class TurretSubsystem {
                     turretServo.setPower(0.0);
                 }
                 lastError = 0.0;
-                if (telemetry != null) {
-                    telemetry.addData("Turret State", "INIT (Motion Disabled)");
-                }
                 return;
             }
 
@@ -219,20 +223,26 @@ public class TurretSubsystem {
                 power = -power;
             }
 
+            currentServoPower = power;
             if (turretServo != null) {
                 turretServo.setPower(power);
             }
-
-            if (telemetry != null) {
-                telemetry.addData("Turret Mode", mode);
-                telemetry.addData("Turret Alliance", alliance);
-                telemetry.addData("Turret Target Goal", currentGoal);
-                telemetry.addData("Turret Target Angle", String.format(java.util.Locale.US, "%.1f deg", targetAngleDeg));
-                telemetry.addData("Turret Current Angle", String.format(java.util.Locale.US, "%.1f deg", currentAngleDeg));
-                telemetry.addData("Turret Raw Ticks", turretEncoder != null ? turretEncoder.getCurrentPosition() : "NULL ENCODER!");
-                telemetry.addData("Turret Servo Power", String.format(java.util.Locale.US, "%.2f", power));
-                telemetry.addData("Turret Distance to Goal", String.format(java.util.Locale.US, "%.1f in", currentDistanceInches));
-            }
         });
+    }
+
+    public void printTelemetry(Telemetry telemetry, TelemetryLevel level) {
+        if (telemetry == null || level == TelemetryLevel.NONE) return;
+
+        telemetry.addData("Turret Mode", mode);
+        telemetry.addData("Turret Target Goal", currentGoal);
+
+        if (level == TelemetryLevel.DEBUG) {
+            telemetry.addData("Turret Alliance", alliance);
+            telemetry.addData("Turret Target Angle", String.format(java.util.Locale.US, "%.1f deg", currentTargetAngleDeg));
+            telemetry.addData("Turret Current Angle", String.format(java.util.Locale.US, "%.1f deg", getTurretAngleDeg()));
+            telemetry.addData("Turret Raw Ticks", turretEncoder != null ? turretEncoder.getCurrentPosition() : "NULL ENCODER!");
+            telemetry.addData("Turret Servo Power", String.format(java.util.Locale.US, "%.2f", currentServoPower));
+            telemetry.addData("Turret Distance to Goal", String.format(java.util.Locale.US, "%.1f in", currentDistanceInches));
+        }
     }
 }
