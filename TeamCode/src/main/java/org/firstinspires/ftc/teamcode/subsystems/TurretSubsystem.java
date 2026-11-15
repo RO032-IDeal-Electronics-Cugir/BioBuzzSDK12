@@ -39,6 +39,7 @@ public class TurretSubsystem {
     private DcMotor turretEncoder;
     private Telemetry telemetry;
     private Follower follower;
+    private DrivetrainSubsystem drivetrain;
 
     private Mode mode = Mode.AUTO_AIM;
     private TargetGoal currentGoal = TargetGoal.BOTTOM;
@@ -77,6 +78,10 @@ public class TurretSubsystem {
 
     public void setFollower(Follower follower) {
         this.follower = follower;
+    }
+
+    public void setDrivetrain(DrivetrainSubsystem drivetrain) {
+        this.drivetrain = drivetrain;
     }
 
     public void setAlliance(Alliance alliance) {
@@ -130,11 +135,13 @@ public class TurretSubsystem {
         setManualTargetAngleDeg(manualTargetAngleDeg + deltaDeg);
     }
 
-    public void resetEncoder() {
+    public boolean resetEncoder() {
         if (turretEncoder != null) {
             turretEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             turretEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            return true;
         }
+        return false;
     }
 
     public Command periodic() {
@@ -153,8 +160,10 @@ public class TurretSubsystem {
                 return;
             }
 
-            // Preluare pozitie robot de la Pedro Pathing
-            Pose robotPose = (follower != null && follower.localizer != null) ? follower.localizer.pose() : Pose.zero();
+            // Preluare pozitie robot de la Pedro Pathing / Localizer Fallback
+            Pose robotPose = (drivetrain != null)
+                    ? drivetrain.getPose()
+                    : ((follower != null && follower.localizer != null) ? follower.localizer.pose() : Pose.zero());
 
             // Calcul pozitie turela cu decalajul de -10 cm (-3.937 inchi)
             double offsetInches = TurretConfig.TURRET_OFFSET_Y_CM / 2.54;

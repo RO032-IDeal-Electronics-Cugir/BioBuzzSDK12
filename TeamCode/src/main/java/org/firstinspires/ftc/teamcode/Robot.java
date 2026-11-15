@@ -47,6 +47,7 @@ public class Robot {
         shooter = new ShooterSubsystem(hardwareMap, telemetry);
         vision = new VisionSubsystem(hardwareMap, telemetry);
         turret = new TurretSubsystem(hardwareMap, telemetry, drivetrain != null ? drivetrain.getFollower() : null);
+        turret.setDrivetrain(drivetrain);
         turret.setAlliance(Alliance.current);
     }
 
@@ -59,6 +60,7 @@ public class Robot {
         shooter = new ShooterSubsystem(hardwareMap, null);
         vision = new VisionSubsystem(hardwareMap, null);
         turret = new TurretSubsystem(hardwareMap, null, drivetrain != null ? drivetrain.getFollower() : null);
+        turret.setDrivetrain(drivetrain);
         turret.setAlliance(Alliance.current);
     }
 
