@@ -33,6 +33,8 @@ public class Robot {
     public VisionSubsystem vision;
     public TurretSubsystem turret;
 
+    public boolean isAutoShooterAdjustmentEnabled = true;
+
     public Robot(OpMode opMode) {
         this.hardwareMap = opMode.hardwareMap;
         this.telemetry = new MultipleTelemetry(
@@ -79,7 +81,7 @@ public class Robot {
         if (vision != null) {
             vision.update();
         }
-        if (turret != null && shooter != null && turret.getMode() == TurretSubsystem.Mode.AUTO_AIM) {
+        if (turret != null && shooter != null && turret.getMode() == TurretSubsystem.Mode.AUTO_AIM && isAutoShooterAdjustmentEnabled) {
             shooter.updatePowerForDistance(turret.getCurrentDistanceInches());
         }
     }
