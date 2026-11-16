@@ -20,7 +20,6 @@ public class VisionAlignTeleOp extends RobotOpMode {
     @Override
     public void init() {
         super.init();
-
         Alliance.isAllianceSelected = false;
 
         pdController = new PDController(
@@ -31,7 +30,10 @@ public class VisionAlignTeleOp extends RobotOpMode {
         );
         visionAlignCommand = new VisionAlignCommand(robot, pdController);
 
-        // Retine pozitia de la autonom daca exista
+        if (robot.flowerCollector != null) {
+            robot.flowerCollector.goToZero();
+        }
+
         robot.drivetrain.usePreviousStartingPose();
     }
 
@@ -39,7 +41,6 @@ public class VisionAlignTeleOp extends RobotOpMode {
     public void init_loop() {
         super.init_loop();
 
-        // Gamepad 2 - Selecție Alianță în faza Init (L1 = RED, R1 = BLUE)
         if (gamepad2.leftBumperWasPressed()) {
             robot.setAlliance(Alliance.RED);
             if (robot.drivetrain.getFollower() != null) {
@@ -67,13 +68,10 @@ public class VisionAlignTeleOp extends RobotOpMode {
     public void start() {
         super.start();
 
-        // Măsură de siguranță: dacă alianța nu a fost selectată explicit în Init,
-        // forțăm turela în modul LOCK_FORWARD (drept înainte) pentru a preveni rotirea necontrolată!
         if (!Alliance.isAllianceSelected) {
             robot.turret.setMode(TurretSubsystem.Mode.LOCK_FORWARD);
         }
     }
-
     @Override
     public void loop() {
         super.loop();
@@ -83,17 +81,15 @@ public class VisionAlignTeleOp extends RobotOpMode {
         pdController.setKf(FindingBallConfig.F_GAIN);
         pdController.setTolerance(FindingBallConfig.TOLERANCE_DEGREES);
 
-        // Gamepad 1 - Control Drivetrain (Inainte/Inapoi = Left Y, Strafe = Right X, Rotire = Triggers R2 - L2)
+        // Gamepad 1 - Control Drivetrain
         double forward = -gamepad1.left_stick_y;
         double strafe = gamepad1.right_stick_x;
-        double turn = gamepad1.right_trigger - gamepad1.left_trigger;
+       double turn = gamepad1.right_trigger- gamepad1.left_trigger;
 
-        // Comutare Mode Conducere (Field-Centric vs Robot-Centric) cu Share (Back)
         if (gamepad1.shareWasPressed()) {
             robot.drivetrain.toggleDriveMode();
         }
 
-        // Auto-Align cu Limelight cand se tine apasat Right Bumper (R1) cu stări native WasPressed/WasReleased
         if (gamepad1.rightBumperWasPressed()) {
             visionAlignCommand.start();
         }
@@ -109,7 +105,7 @@ public class VisionAlignTeleOp extends RobotOpMode {
             robot.drivetrain.drive(forward, strafe, turn);
         }
 
-        // Gamepad 1 - Intake Control (Cross = In, Circle = Out, L1 = Short Reverse)
+        // Gamepad 1 - Intake Control
         if (gamepad1.leftBumperWasPressed()) {
             robot.intake.shortReverse().schedule();
         } else if (!gamepad1.left_bumper) {
@@ -122,12 +118,21 @@ public class VisionAlignTeleOp extends RobotOpMode {
             }
         }
 
-        // Gamepad 1 - Shooter Toggle (Square)
+        // Gamepad 1 - Shooter Toggle
         if (gamepad1.squareWasPressed()) {
             robot.shooter.toggle();
         }
 
-        // Gamepad 2 - Schimbare Alianță (L1 = RED, R1 = BLUE)
+        // Gamepad 1 - Bara la intake
+        if (robot.flowerCollector != null) {
+            if (gamepad1.dpadUpWasPressed()) {
+                robot.flowerCollector.goToZero();
+            } else if (gamepad1.dpadDownWasPressed()) {
+                robot.flowerCollector.collect();
+            }
+        }
+
+        // Gamepad 2 - Schimbare Alianță
         if (gamepad2.leftBumperWasPressed()) {
             robot.setAlliance(Alliance.RED);
         }
@@ -135,7 +140,7 @@ public class VisionAlignTeleOp extends RobotOpMode {
             robot.setAlliance(Alliance.BLUE);
         }
 
-        // Gamepad 2 - Control Moduri Turelă (Cross = AUTO_AIM, Square = LOCK_FORWARD, Circle = MANUAL)
+        // Gamepad 2 - Control Moduri Turelă
         if (gamepad2.crossWasPressed()) {
             robot.turret.setMode(TurretSubsystem.Mode.AUTO_AIM);
         } else if (gamepad2.squareWasPressed()) {
@@ -144,7 +149,7 @@ public class VisionAlignTeleOp extends RobotOpMode {
             robot.turret.setMode(TurretSubsystem.Mode.MANUAL);
         }
 
-        // Gamepad 2 - Ajustare Manuală Turelă în Modul MANUAL
+        // Gamepad 2 - Ajustare Manuală Turelă sau Putere Shooter
         if (robot.turret.getMode() == TurretSubsystem.Mode.MANUAL) {
             if (gamepad2.dpad_left) {
                 robot.turret.adjustManualAngle(-1.0);
@@ -152,7 +157,6 @@ public class VisionAlignTeleOp extends RobotOpMode {
                 robot.turret.adjustManualAngle(1.0);
             }
         } else {
-            // Gamepad 2 - Ajustare Putere Shooter (DPad Up / Down) când nu e în modul manual al turelei
             if (gamepad2.dpadUpWasPressed()) {
                 robot.shooter.increasePower(0.05);
             }
@@ -161,15 +165,12 @@ public class VisionAlignTeleOp extends RobotOpMode {
             }
         }
 
-        // Gamepad 2 - Reset Heading Field-Centric (Triangle)
+        // Gamepad 2 - Reset Heading Field-Centric
         if (gamepad2.triangleWasPressed()) {
             robot.drivetrain.resetHeading();
         }
 
-        // Actualizare stări robot (update distanță shooter etc.)
         robot.update();
-
-        // Transmisie Unică Telemetrie la Finalul Buclei (Match Mode)
         robot.updateTelemetry(Robot.RobotTelemetryMode.MATCH);
     }
 }
