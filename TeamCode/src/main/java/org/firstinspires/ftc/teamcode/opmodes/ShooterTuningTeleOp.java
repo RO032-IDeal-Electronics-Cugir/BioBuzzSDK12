@@ -125,7 +125,7 @@ public class ShooterTuningTeleOp extends RobotOpMode {
 
         // Gamepad 1 - Control Drivetrain pentru pozitionare libera pe teren
         double forward = -gamepad1.left_stick_y;
-        double strafe = gamepad1.right_stick_x;
+        double strafe = gamepad1.left_stick_x;
         double turn = gamepad1.right_trigger - gamepad1.left_trigger;
 
         if (gamepad1.shareWasPressed()) {
