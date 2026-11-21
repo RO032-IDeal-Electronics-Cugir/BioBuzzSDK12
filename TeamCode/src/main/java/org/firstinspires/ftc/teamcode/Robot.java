@@ -11,7 +11,6 @@ import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.TurretSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.flowerCollector;
 
 public class Robot {
 
@@ -35,8 +34,6 @@ public class Robot {
     public TurretSubsystem turret;
 
     public boolean isAutoShooterAdjustmentEnabled = true;
-    public flowerCollector flowerCollector;
-
 
     public Robot(OpMode opMode) {
         this.hardwareMap = opMode.hardwareMap;
@@ -47,7 +44,6 @@ public class Robot {
 
         drivetrain = new DrivetrainSubsystem(hardwareMap, telemetry);
         intake = new IntakeSubsystem(hardwareMap, telemetry);
-        flowerCollector = new flowerCollector(hardwareMap);
         shooter = new ShooterSubsystem(hardwareMap, telemetry);
         vision = new VisionSubsystem(hardwareMap, telemetry);
         turret = new TurretSubsystem(hardwareMap, telemetry, drivetrain.getFollower());
@@ -66,7 +62,6 @@ public class Robot {
         turret = new TurretSubsystem(hardwareMap, null, drivetrain.getFollower());
         turret.setDrivetrain(drivetrain);
         turret.setAlliance(Alliance.current);
-        flowerCollector = new flowerCollector(hardwareMap);
     }
 
     public void setAlliance(Alliance alliance) {
@@ -117,7 +112,6 @@ public class Robot {
                 vision.printTelemetry(telemetry, VisionSubsystem.TelemetryLevel.MATCH);
                 shooter.printTelemetry(telemetry, ShooterSubsystem.TelemetryLevel.MATCH);
                 intake.printTelemetry(telemetry, IntakeSubsystem.TelemetryLevel.MATCH);
-                flowerCollector.printTelemetry(telemetry);
                 break;
 
             case DEBUG_TURRET:

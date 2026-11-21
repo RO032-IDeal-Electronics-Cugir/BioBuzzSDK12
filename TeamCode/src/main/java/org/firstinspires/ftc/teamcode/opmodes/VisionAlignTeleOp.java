@@ -30,7 +30,7 @@ public class VisionAlignTeleOp extends RobotOpMode {
         );
         visionAlignCommand = new VisionAlignCommand(robot, pdController);
 
-        robot.flowerCollector.goToZero();
+        robot.intake.raiseBar();
 
         robot.drivetrain.usePreviousStartingPose();
     }
@@ -123,9 +123,9 @@ public class VisionAlignTeleOp extends RobotOpMode {
 
         // Gamepad 1 - Bara la intake
         if (gamepad1.dpadUpWasPressed()) {
-            robot.flowerCollector.goToZero();
+            robot.intake.raiseBar();
         } else if (gamepad1.dpadDownWasPressed()) {
-            robot.flowerCollector.collect();
+            robot.intake.lowerBar();
         }
 
         // Gamepad 2 - Schimbare Alianță
