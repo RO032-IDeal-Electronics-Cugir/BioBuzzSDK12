@@ -1,20 +1,17 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import com.acmerobotics.dashboard.config.Config;
-import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.ivy.Command;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.configurables.IntakeConfig;
 
 import static com.pedropathing.ivy.commands.Commands.infinite;
 import static com.pedropathing.ivy.commands.Commands.instant;
 import static com.pedropathing.ivy.commands.Commands.waitMs;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 
-@Config
-@Configurable
 public class IntakeSubsystem {
 
     public enum TelemetryLevel {
@@ -22,15 +19,6 @@ public class IntakeSubsystem {
         MATCH,
         DEBUG
     }
-
-    public static double fastPower = 1.0;
-    public static double slowPower = 0.5;
-    public static double reversePower = -1.0;
-    public static long shortReverseTimeMs = 150;
-    public static boolean reverseTransferMotor = false;
-
-    public static double BAR_ZERO_POSITION = 0.1735;    // 847us
-    public static double BAR_COLLECT_POSITION = 0.4725; // 1445us
 
     private DcMotor intakeMotor;
     private DcMotor transferMotor;
@@ -66,7 +54,7 @@ public class IntakeSubsystem {
 
     public void setPower(double power) {
         intakeMotor.setPower(power);
-        transferMotor.setPower(reverseTransferMotor ? -power : power);
+        transferMotor.setPower(IntakeConfig.REVERSE_TRANSFER_MOTOR ? -power : power);
     }
 
     public void on() {
@@ -100,7 +88,7 @@ public class IntakeSubsystem {
     public Command shortReverse() {
         return sequential(
                 instant(this::reverse),
-                waitMs(shortReverseTimeMs),
+                waitMs(IntakeConfig.SHORT_REVERSE_TIME_MS),
                 instant(this::on)
         );
     }
@@ -110,10 +98,10 @@ public class IntakeSubsystem {
             double power = 0.0;
             switch (mode) {
                 case ON:
-                    power = slowMode ? slowPower : fastPower;
+                    power = slowMode ? IntakeConfig.SLOW_POWER : IntakeConfig.FAST_POWER;
                     break;
                 case REVERSE:
-                    power = reversePower;
+                    power = IntakeConfig.REVERSE_POWER;
                     break;
                 case OFF:
                 default:
@@ -126,11 +114,11 @@ public class IntakeSubsystem {
     }
 
     public void raiseBar() {
-        intakeBarServo.setPosition(BAR_ZERO_POSITION);
+        intakeBarServo.setPosition(IntakeConfig.BAR_ZERO_POSITION);
     }
 
     public void lowerBar() {
-        intakeBarServo.setPosition(BAR_COLLECT_POSITION);
+        intakeBarServo.setPosition(IntakeConfig.BAR_COLLECT_POSITION);
     }
 
     public void setBarPosition(double position) {
