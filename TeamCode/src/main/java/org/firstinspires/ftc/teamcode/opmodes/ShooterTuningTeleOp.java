@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.opmodes;
 import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+import org.firstinspires.ftc.teamcode.configurables.ShooterConfig;
 import org.firstinspires.ftc.teamcode.configurables.TurretConfig;
 import org.firstinspires.ftc.teamcode.robot.Alliance;
 import org.firstinspires.ftc.teamcode.robot.RobotOpMode;
@@ -458,6 +459,16 @@ public class ShooterTuningTeleOp extends RobotOpMode {
                 robot.shooter.getPollenPower(), robot.shooter.getPollenPitchPosition()));
         telemetry.addData("🍯 NECTAR Shooter", String.format(Locale.US, "Power: %.2f | Pitch Servo: %.3f",
                 robot.shooter.getNectarPower(), robot.shooter.getNectarPitchPosition()));
+
+        telemetry.addLine("═════════════ COEFICIENȚI HARDWARE PIDF (REV HUB) ═════════════");
+        telemetry.addData("⚙️ Pollen Default REV PIDF", ShooterSubsystem.defaultPollenPidf);
+        telemetry.addData("⚙️ Nectar Default REV PIDF", ShooterSubsystem.defaultNectarPidf);
+        if (ShooterConfig.ENABLE_CUSTOM_PIDF) {
+            telemetry.addData("🎛️ Pollen Active PIDF", String.format(Locale.US, "P=%.2f, I=%.2f, D=%.2f, F=%.2f",
+                    ShooterConfig.POLLEN_PIDF_P, ShooterConfig.POLLEN_PIDF_I, ShooterConfig.POLLEN_PIDF_D, ShooterConfig.POLLEN_PIDF_F));
+            telemetry.addData("🎛️ Nectar Active PIDF", String.format(Locale.US, "P=%.2f, I=%.2f, D=%.2f, F=%.2f",
+                    ShooterConfig.NECTAR_PIDF_P, ShooterConfig.NECTAR_PIDF_I, ShooterConfig.NECTAR_PIDF_D, ShooterConfig.NECTAR_PIDF_F));
+        }
 
         telemetry.addLine("------------------------------------------------");
         telemetry.addData("🔄 Mod Turelă", robot.turret.getMode());

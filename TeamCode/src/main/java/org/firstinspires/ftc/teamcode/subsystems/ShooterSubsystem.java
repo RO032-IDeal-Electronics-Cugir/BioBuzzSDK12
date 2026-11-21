@@ -2,7 +2,10 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.pedropathing.ivy.Command;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
@@ -27,9 +30,11 @@ public class ShooterSubsystem {
     }
 
     public static String coefficientsSource = "DEFAULTS (Fișier negăsit)";
+    public static String defaultPollenPidf = "N/A";
+    public static String defaultNectarPidf = "N/A";
 
-    private DcMotor pollenMotor;
-    private DcMotor nectarMotor;
+    private DcMotorEx pollenMotor;
+    private DcMotorEx nectarMotor;
     private Servo pitchServoPollen;
     private Servo pitchServoNectar;
 
@@ -56,13 +61,24 @@ public class ShooterSubsystem {
         this.pollenPitchPosition = Math.max(ShooterConfig.MIN_PITCH_POSITION, Math.min(ShooterConfig.MAX_PITCH_POSITION, ShooterConfig.DEFAULT_POLLEN_PITCH));
         this.nectarPitchPosition = Math.max(ShooterConfig.MIN_PITCH_POSITION, Math.min(ShooterConfig.MAX_PITCH_POSITION, ShooterConfig.DEFAULT_NECTAR_PITCH));
 
-        pollenMotor = hardwareMap.get(DcMotor.class, "pollenMotor");
-        pollenMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        pollenMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        try {
+            pollenMotor = hardwareMap.get(DcMotorEx.class, "pollenMotor");
+            pollenMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            pollenMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        } catch (Exception e) {
+            pollenMotor = null;
+        }
 
-        nectarMotor = hardwareMap.get(DcMotor.class, "nectarMotor");
-        nectarMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        nectarMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        try {
+            nectarMotor = hardwareMap.get(DcMotorEx.class, "nectarMotor");
+            nectarMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            nectarMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        } catch (Exception e) {
+            nectarMotor = null;
+        }
+
+        fetchDefaultPIDF();
+        updatePIDFCoefficients();
 
         pitchServoPollen = hardwareMap.get(Servo.class, "pitchServoPollen");
         pitchServoNectar = hardwareMap.get(Servo.class, "pitchServoNectar");
@@ -399,8 +415,52 @@ public class ShooterSubsystem {
         setNectarPitchPosition(calculatedNectarPitch);
     }
 
+    public void fetchDefaultPIDF() {
+        try {
+            if (pollenMotor != null) {
+                PIDFCoefficients pidf = pollenMotor.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+                defaultPollenPidf = String.format(java.util.Locale.US, "P=%.2f, I=%.2f, D=%.2f, F=%.2f", pidf.p, pidf.i, pidf.d, pidf.f);
+            }
+        } catch (Exception e) {
+            defaultPollenPidf = "Eroare citire";
+        }
+
+        try {
+            if (nectarMotor != null) {
+                PIDFCoefficients pidf = nectarMotor.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+                defaultNectarPidf = String.format(java.util.Locale.US, "P=%.2f, I=%.2f, D=%.2f, F=%.2f", pidf.p, pidf.i, pidf.d, pidf.f);
+            }
+        } catch (Exception e) {
+            defaultNectarPidf = "Eroare citire";
+        }
+    }
+
+    public void updatePIDFCoefficients() {
+        if (!ShooterConfig.ENABLE_CUSTOM_PIDF) return;
+
+        if (pollenMotor != null) {
+            pollenMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(
+                    ShooterConfig.POLLEN_PIDF_P,
+                    ShooterConfig.POLLEN_PIDF_I,
+                    ShooterConfig.POLLEN_PIDF_D,
+                    ShooterConfig.POLLEN_PIDF_F
+            ));
+        }
+
+        if (nectarMotor != null) {
+            nectarMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(
+                    ShooterConfig.NECTAR_PIDF_P,
+                    ShooterConfig.NECTAR_PIDF_I,
+                    ShooterConfig.NECTAR_PIDF_D,
+                    ShooterConfig.NECTAR_PIDF_F
+            ));
+        }
+    }
+
     public Command periodic() {
         return infinite(() -> {
+            updatePIDFCoefficients();
+
             pollenMotor.setPower(isPollenRunning ? pollenPower : 0.0);
             nectarMotor.setPower(isNectarRunning ? nectarPower : 0.0);
 
@@ -417,5 +477,14 @@ public class ShooterSubsystem {
         telemetry.addData("Sursă Coeficienți", ShooterConfig.COEFFICIENTS_SOURCE);
         telemetry.addData("Pollen Shooter", String.format(java.util.Locale.US, "Pwr: %.2f | Pitch: %.3f", pollenPower, pollenPitchPosition));
         telemetry.addData("Nectar Shooter", String.format(java.util.Locale.US, "Pwr: %.2f | Pitch: %.3f", nectarPower, nectarPitchPosition));
+        telemetry.addData("REV Default Pollen PIDF", defaultPollenPidf);
+        telemetry.addData("REV Default Nectar PIDF", defaultNectarPidf);
+
+        if (ShooterConfig.ENABLE_CUSTOM_PIDF) {
+            telemetry.addData("Active Pollen PIDF", String.format(java.util.Locale.US, "P=%.2f, I=%.2f, D=%.2f, F=%.2f",
+                    ShooterConfig.POLLEN_PIDF_P, ShooterConfig.POLLEN_PIDF_I, ShooterConfig.POLLEN_PIDF_D, ShooterConfig.POLLEN_PIDF_F));
+            telemetry.addData("Active Nectar PIDF", String.format(java.util.Locale.US, "P=%.2f, I=%.2f, D=%.2f, F=%.2f",
+                    ShooterConfig.NECTAR_PIDF_P, ShooterConfig.NECTAR_PIDF_I, ShooterConfig.NECTAR_PIDF_D, ShooterConfig.NECTAR_PIDF_F));
+        }
     }
 }
