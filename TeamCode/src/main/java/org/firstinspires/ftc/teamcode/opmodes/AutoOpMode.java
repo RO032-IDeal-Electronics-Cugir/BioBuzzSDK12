@@ -33,7 +33,8 @@ public class AutoOpMode extends LinearOpMode {
                 robot.intake.periodic(),
                 robot.shooter.periodic(),
                 robot.vision.periodic(),
-                robot.turret.periodic()
+                robot.turret.periodic(),
+                robot.periodic()
         );
 
         Follower follower = robot.drivetrain.getFollower();
@@ -91,7 +92,6 @@ public class AutoOpMode extends LinearOpMode {
 
         while (opModeIsActive()) {
             Scheduler.execute();
-            robot.update();
         }
     }
 }

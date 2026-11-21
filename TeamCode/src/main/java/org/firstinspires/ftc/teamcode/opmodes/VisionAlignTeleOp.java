@@ -166,7 +166,6 @@ public class VisionAlignTeleOp extends RobotOpMode {
             robot.drivetrain.resetHeading();
         }
 
-        robot.update();
         robot.updateTelemetry(Robot.RobotTelemetryMode.MATCH);
     }
 }

@@ -214,9 +214,6 @@ public class ShooterTuningTeleOp extends RobotOpMode {
             saveCurrentTuningPoint();
         }
 
-        // Actualizare calcule robot (distanță turelă etc.)
-        robot.update();
-
         // Telemetrie Detaliată de Calibrare
         printTuningTelemetry();
     }

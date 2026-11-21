@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.pedropathing.ivy.Command;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -11,6 +12,8 @@ import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.TurretSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
+
+import static com.pedropathing.ivy.commands.Commands.infinite;
 
 public class Robot {
 
@@ -74,12 +77,12 @@ public class Robot {
         return Alliance.current;
     }
 
-    public void update() {
-        drivetrain.update();
-        vision.update();
-        if (turret.getMode() == TurretSubsystem.Mode.AUTO_AIM && isAutoShooterAdjustmentEnabled) {
-            shooter.updatePowerForDistance(turret.getCurrentDistanceInches());
-        }
+    public Command periodic() {
+        return infinite(() -> {
+            if (turret.getMode() == TurretSubsystem.Mode.AUTO_AIM && isAutoShooterAdjustmentEnabled) {
+                shooter.updatePowerForDistance(turret.getCurrentDistanceInches());
+            }
+        });
     }
 
     public void updateTelemetry() {
