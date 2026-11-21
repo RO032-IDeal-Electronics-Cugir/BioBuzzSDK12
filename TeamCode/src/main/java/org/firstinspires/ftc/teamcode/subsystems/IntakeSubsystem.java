@@ -5,7 +5,6 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.ivy.Command;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -53,10 +52,7 @@ public class IntakeSubsystem {
         transferMotor = hardwareMap.get(DcMotor.class, "transferMotor");
         transferMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        intakeBarServo = hardwareMap.get(Servo.class, "baraIntake");
-        if (intakeBarServo instanceof PwmControl) {
-            ((PwmControl) intakeBarServo).setPwmRange(new PwmControl.PwmRange(500, 2500));
-        }
+        intakeBarServo = hardwareMap.get(Servo.class, "intakeBar");
         raiseBar();
     }
 
@@ -149,7 +145,7 @@ public class IntakeSubsystem {
         if (telemetry == null || level == TelemetryLevel.NONE) return;
 
         telemetry.addData("Intake Mode", mode + (slowMode ? " (SLOW)" : ""));
-        telemetry.addData("Bara Intake Pos", intakeBarServo.getPosition());
+        telemetry.addData("Intake Bar Pos", intakeBarServo.getPosition());
     }
 
     public enum Mode {
