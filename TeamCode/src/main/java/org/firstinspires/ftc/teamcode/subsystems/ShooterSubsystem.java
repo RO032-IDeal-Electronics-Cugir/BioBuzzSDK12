@@ -73,33 +73,16 @@ public class ShooterSubsystem {
 
         loadCoefficientsFromJson();
 
-        try {
-            pollenMotor = hardwareMap.get(DcMotor.class, "pollenMotor");
-            pollenMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            pollenMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        } catch (Exception e) {
-            pollenMotor = null;
-        }
+        pollenMotor = hardwareMap.get(DcMotor.class, "pollenMotor");
+        pollenMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        pollenMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        try {
-            nectarMotor = hardwareMap.get(DcMotor.class, "nectarMotor");
-            nectarMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            nectarMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        } catch (Exception e) {
-            nectarMotor = null;
-        }
+        nectarMotor = hardwareMap.get(DcMotor.class, "nectarMotor");
+        nectarMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        nectarMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        try {
-            pitchServoPollen = hardwareMap.get(Servo.class, "pitchServoPollen");
-        } catch (Exception e) {
-            pitchServoPollen = null;
-        }
-
-        try {
-            pitchServoNectar = hardwareMap.get(Servo.class, "pitchServoNectar");
-        } catch (Exception e) {
-            pitchServoNectar = null;
-        }
+        pitchServoPollen = hardwareMap.get(Servo.class, "pitchServoPollen");
+        pitchServoNectar = hardwareMap.get(Servo.class, "pitchServoNectar");
     }
 
     public static void loadCoefficientsFromJson() {
@@ -301,16 +284,12 @@ public class ShooterSubsystem {
 
     public void setPollenPitchPosition(double position) {
         this.pollenPitchPosition = Math.max(0.0, Math.min(1.0, position));
-        if (pitchServoPollen != null) {
-            pitchServoPollen.setPosition(this.pollenPitchPosition);
-        }
+        pitchServoPollen.setPosition(this.pollenPitchPosition);
     }
 
     public void setNectarPitchPosition(double position) {
         this.nectarPitchPosition = Math.max(0.0, Math.min(1.0, position));
-        if (pitchServoNectar != null) {
-            pitchServoNectar.setPosition(this.nectarPitchPosition);
-        }
+        pitchServoNectar.setPosition(this.nectarPitchPosition);
     }
 
     public double getPollenPitchPosition() {
@@ -388,15 +367,15 @@ public class ShooterSubsystem {
     public Command periodic() {
         return infinite(() -> {
             if (isRunning) {
-                if (pollenMotor != null) pollenMotor.setPower(pollenPower);
-                if (nectarMotor != null) nectarMotor.setPower(nectarPower);
+                pollenMotor.setPower(pollenPower);
+                nectarMotor.setPower(nectarPower);
             } else {
-                if (pollenMotor != null) pollenMotor.setPower(0.0);
-                if (nectarMotor != null) nectarMotor.setPower(0.0);
+                pollenMotor.setPower(0.0);
+                nectarMotor.setPower(0.0);
             }
 
-            if (pitchServoPollen != null) pitchServoPollen.setPosition(pollenPitchPosition);
-            if (pitchServoNectar != null) pitchServoNectar.setPosition(nectarPitchPosition);
+            pitchServoPollen.setPosition(pollenPitchPosition);
+            pitchServoNectar.setPosition(nectarPitchPosition);
         });
     }
 
@@ -407,12 +386,5 @@ public class ShooterSubsystem {
         telemetry.addData("Sursă Coeficienți", coefficientsSource);
         telemetry.addData("Pollen Shooter", String.format(java.util.Locale.US, "Pwr: %.2f | Pitch: %.3f", pollenPower, pollenPitchPosition));
         telemetry.addData("Nectar Shooter", String.format(java.util.Locale.US, "Pwr: %.2f | Pitch: %.3f", nectarPower, nectarPitchPosition));
-
-        if (level == TelemetryLevel.DEBUG) {
-            telemetry.addData("Pollen Motor Present", pollenMotor != null);
-            telemetry.addData("Nectar Motor Present", nectarMotor != null);
-            telemetry.addData("Pollen Servo Present", pitchServoPollen != null);
-            telemetry.addData("Nectar Servo Present", pitchServoNectar != null);
-        }
     }
 }

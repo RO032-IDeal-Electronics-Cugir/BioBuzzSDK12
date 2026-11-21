@@ -41,19 +41,11 @@ public class IntakeSubsystem {
 
     public IntakeSubsystem(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
-        try {
-            intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
-            intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        } catch (Exception e) {
-            intakeMotor = null;
-        }
+        intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
+        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        try {
-            transferMotor = hardwareMap.get(DcMotor.class, "transferMotor");
-            transferMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        } catch (Exception e) {
-            transferMotor = null;
-        }
+        transferMotor = hardwareMap.get(DcMotor.class, "transferMotor");
+        transferMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     public void setMode(Mode mode) {
@@ -65,12 +57,8 @@ public class IntakeSubsystem {
     }
 
     public void setPower(double power) {
-        if (intakeMotor != null) {
-            intakeMotor.setPower(power);
-        }
-        if (transferMotor != null) {
-            transferMotor.setPower(reverseTransferMotor ? -power : power);
-        }
+        intakeMotor.setPower(power);
+        transferMotor.setPower(reverseTransferMotor ? -power : power);
     }
 
     public void on() {
@@ -133,10 +121,6 @@ public class IntakeSubsystem {
         if (telemetry == null || level == TelemetryLevel.NONE) return;
 
         telemetry.addData("Intake Mode", mode + (slowMode ? " (SLOW)" : ""));
-        if (level == TelemetryLevel.DEBUG) {
-            telemetry.addData("Intake Motor Connected", intakeMotor != null);
-            telemetry.addData("Transfer Motor Connected", transferMotor != null);
-        }
     }
 
     public enum Mode {

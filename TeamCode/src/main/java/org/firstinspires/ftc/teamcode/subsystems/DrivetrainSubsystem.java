@@ -54,24 +54,20 @@ public class DrivetrainSubsystem {
             }
         }
 
-        try {
-            frontLeft = hardwareMap.get(DcMotor.class, "fl");
-            backLeft = hardwareMap.get(DcMotor.class, "bl");
-            frontRight = hardwareMap.get(DcMotor.class, "fr");
-            backRight = hardwareMap.get(DcMotor.class, "br");
+        frontLeft = hardwareMap.get(DcMotor.class, "fl");
+        backLeft = hardwareMap.get(DcMotor.class, "bl");
+        frontRight = hardwareMap.get(DcMotor.class, "fr");
+        backRight = hardwareMap.get(DcMotor.class, "br");
 
-            frontLeft.setDirection(DcMotor.Direction.REVERSE);
-            backLeft.setDirection(DcMotor.Direction.REVERSE);
-            frontRight.setDirection(DcMotor.Direction.FORWARD);
-            backRight.setDirection(DcMotor.Direction.FORWARD);
+        frontLeft.setDirection(DcMotor.Direction.REVERSE);
+        backLeft.setDirection(DcMotor.Direction.REVERSE);
+        frontRight.setDirection(DcMotor.Direction.FORWARD);
+        backRight.setDirection(DcMotor.Direction.FORWARD);
 
-            frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        } catch (Exception e) {
-            // Motors not yet configured in hardware map
-        }
+        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     private static double signedSquare(double raw) {
@@ -121,52 +117,48 @@ public class DrivetrainSubsystem {
     }
 
     public void driveRobotCentric(double forward, double strafe, double turn, boolean applySquareTurn) {
-        if (frontLeft != null && backLeft != null && frontRight != null && backRight != null) {
-            forward = signedSquare(forward);
-            strafe = signedSquare(strafe);
-            if (applySquareTurn) {
-                turn = signedSquare(turn);
-            }
-
-            double denominator = Math.max(Math.abs(forward) + Math.abs(strafe) + Math.abs(turn), 1.0);
-            double flPower = (forward + strafe + turn) / denominator;
-            double blPower = (forward - strafe + turn) / denominator;
-            double frPower = (forward - strafe - turn) / denominator;
-            double brPower = (forward + strafe - turn) / denominator;
-
-            frontLeft.setPower(flPower);
-            backLeft.setPower(blPower);
-            frontRight.setPower(frPower);
-            backRight.setPower(brPower);
+        forward = signedSquare(forward);
+        strafe = signedSquare(strafe);
+        if (applySquareTurn) {
+            turn = signedSquare(turn);
         }
+
+        double denominator = Math.max(Math.abs(forward) + Math.abs(strafe) + Math.abs(turn), 1.0);
+        double flPower = (forward + strafe + turn) / denominator;
+        double blPower = (forward - strafe + turn) / denominator;
+        double frPower = (forward - strafe - turn) / denominator;
+        double brPower = (forward + strafe - turn) / denominator;
+
+        frontLeft.setPower(flPower);
+        backLeft.setPower(blPower);
+        frontRight.setPower(frPower);
+        backRight.setPower(brPower);
     }
 
     public void driveFieldCentric(double forward, double strafe, double turn, Alliance alliance, boolean applySquareTurn) {
-        if (frontLeft != null && backLeft != null && frontRight != null && backRight != null) {
-            double heading = getHeading() - headingOffset;
+        double heading = getHeading() - headingOffset;
 
-            if (alliance == Alliance.BLUE) {
-                heading += Math.PI;
-            }
-
-            forward = signedSquare(forward);
-            strafe = signedSquare(strafe);
-            if (applySquareTurn) {
-                turn = signedSquare(turn);
-            }
-
-            double x = strafe * Math.cos(heading) + forward * Math.sin(heading);
-            double y = strafe * -Math.sin(heading) + forward * Math.cos(heading);
-
-            y *= 1.1; // Compensate for mecanum friction
-
-            double denominator = Math.max(Math.abs(x) + Math.abs(y) + Math.abs(turn), 1.0);
-
-            frontLeft.setPower((y + x + turn) / denominator);
-            frontRight.setPower((y - x - turn) / denominator);
-            backLeft.setPower((y - x + turn) / denominator);
-            backRight.setPower((y + x - turn) / denominator);
+        if (alliance == Alliance.BLUE) {
+            heading += Math.PI;
         }
+
+        forward = signedSquare(forward);
+        strafe = signedSquare(strafe);
+        if (applySquareTurn) {
+            turn = signedSquare(turn);
+        }
+
+        double x = strafe * Math.cos(heading) + forward * Math.sin(heading);
+        double y = strafe * -Math.sin(heading) + forward * Math.cos(heading);
+
+        y *= 1.1; // Compensate for mecanum friction
+
+        double denominator = Math.max(Math.abs(x) + Math.abs(y) + Math.abs(turn), 1.0);
+
+        frontLeft.setPower((y + x + turn) / denominator);
+        frontRight.setPower((y - x - turn) / denominator);
+        backLeft.setPower((y - x + turn) / denominator);
+        backRight.setPower((y + x - turn) / denominator);
     }
 
     public Pose getPose() {

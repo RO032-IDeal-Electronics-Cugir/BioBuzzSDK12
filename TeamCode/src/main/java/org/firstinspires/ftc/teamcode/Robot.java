@@ -50,7 +50,7 @@ public class Robot {
         flowerCollector = new flowerCollector(hardwareMap);
         shooter = new ShooterSubsystem(hardwareMap, telemetry);
         vision = new VisionSubsystem(hardwareMap, telemetry);
-        turret = new TurretSubsystem(hardwareMap, telemetry, drivetrain != null ? drivetrain.getFollower() : null);
+        turret = new TurretSubsystem(hardwareMap, telemetry, drivetrain.getFollower());
         turret.setDrivetrain(drivetrain);
         turret.setAlliance(Alliance.current);
     }
@@ -63,7 +63,7 @@ public class Robot {
         intake = new IntakeSubsystem(hardwareMap, null);
         shooter = new ShooterSubsystem(hardwareMap, null);
         vision = new VisionSubsystem(hardwareMap, null);
-        turret = new TurretSubsystem(hardwareMap, null, drivetrain != null ? drivetrain.getFollower() : null);
+        turret = new TurretSubsystem(hardwareMap, null, drivetrain.getFollower());
         turret.setDrivetrain(drivetrain);
         turret.setAlliance(Alliance.current);
         flowerCollector = new flowerCollector(hardwareMap);
@@ -72,9 +72,7 @@ public class Robot {
     public void setAlliance(Alliance alliance) {
         Alliance.current = alliance;
         Alliance.isAllianceSelected = true;
-        if (turret != null) {
-            turret.setAlliance(alliance);
-        }
+        turret.setAlliance(alliance);
     }
 
     public Alliance getAlliance() {
@@ -82,13 +80,9 @@ public class Robot {
     }
 
     public void update() {
-        if (drivetrain != null) {
-            drivetrain.update();
-        }
-        if (vision != null) {
-            vision.update();
-        }
-        if (turret != null && shooter != null && turret.getMode() == TurretSubsystem.Mode.AUTO_AIM && isAutoShooterAdjustmentEnabled) {
+        drivetrain.update();
+        vision.update();
+        if (turret.getMode() == TurretSubsystem.Mode.AUTO_AIM && isAutoShooterAdjustmentEnabled) {
             shooter.updatePowerForDistance(turret.getCurrentDistanceInches());
         }
     }
@@ -106,7 +100,7 @@ public class Robot {
             case INIT:
                 if (Alliance.isAllianceSelected) {
                     telemetry.addData("Status", "✅ ALIANȚĂ SELECTATĂ (" + getAlliance() + ")");
-                    if (drivetrain != null && drivetrain.getFollower() != null) {
+                    if (drivetrain.getFollower() != null) {
                         com.pedropathing.math.Pose pose = drivetrain.getPose();
                         telemetry.addData("Start Pose", String.format(java.util.Locale.US, "X: %.1f in, Y: %.1f in, H: %.1f°", pose.x(), pose.y(), Math.toDegrees(pose.heading())));
                     }
@@ -118,33 +112,33 @@ public class Robot {
                 break;
 
             case MATCH:
-                if (drivetrain != null) drivetrain.printTelemetry(telemetry, DrivetrainSubsystem.TelemetryLevel.MATCH);
-                if (turret != null) turret.printTelemetry(telemetry, TurretSubsystem.TelemetryLevel.MATCH);
-                if (vision != null) vision.printTelemetry(telemetry, VisionSubsystem.TelemetryLevel.MATCH);
-                if (shooter != null) shooter.printTelemetry(telemetry, ShooterSubsystem.TelemetryLevel.MATCH);
-                if (intake != null) intake.printTelemetry(telemetry, IntakeSubsystem.TelemetryLevel.MATCH);
-                if (flowerCollector != null) flowerCollector.printTelemetry(telemetry);
+                drivetrain.printTelemetry(telemetry, DrivetrainSubsystem.TelemetryLevel.MATCH);
+                turret.printTelemetry(telemetry, TurretSubsystem.TelemetryLevel.MATCH);
+                vision.printTelemetry(telemetry, VisionSubsystem.TelemetryLevel.MATCH);
+                shooter.printTelemetry(telemetry, ShooterSubsystem.TelemetryLevel.MATCH);
+                intake.printTelemetry(telemetry, IntakeSubsystem.TelemetryLevel.MATCH);
+                flowerCollector.printTelemetry(telemetry);
                 break;
 
             case DEBUG_TURRET:
-                if (turret != null) turret.printTelemetry(telemetry, TurretSubsystem.TelemetryLevel.DEBUG);
-                if (vision != null) vision.printTelemetry(telemetry, VisionSubsystem.TelemetryLevel.MATCH);
+                turret.printTelemetry(telemetry, TurretSubsystem.TelemetryLevel.DEBUG);
+                vision.printTelemetry(telemetry, VisionSubsystem.TelemetryLevel.MATCH);
                 break;
 
             case DEBUG_VISION:
-                if (vision != null) vision.printTelemetry(telemetry, VisionSubsystem.TelemetryLevel.DEBUG);
+                vision.printTelemetry(telemetry, VisionSubsystem.TelemetryLevel.DEBUG);
                 break;
 
             case DEBUG_DRIVETRAIN:
-                if (drivetrain != null) drivetrain.printTelemetry(telemetry, DrivetrainSubsystem.TelemetryLevel.DEBUG);
+                drivetrain.printTelemetry(telemetry, DrivetrainSubsystem.TelemetryLevel.DEBUG);
                 break;
 
             case DEBUG_ALL:
-                if (drivetrain != null) drivetrain.printTelemetry(telemetry, DrivetrainSubsystem.TelemetryLevel.DEBUG);
-                if (turret != null) turret.printTelemetry(telemetry, TurretSubsystem.TelemetryLevel.DEBUG);
-                if (vision != null) vision.printTelemetry(telemetry, VisionSubsystem.TelemetryLevel.DEBUG);
-                if (shooter != null) shooter.printTelemetry(telemetry, ShooterSubsystem.TelemetryLevel.DEBUG);
-                if (intake != null) intake.printTelemetry(telemetry, IntakeSubsystem.TelemetryLevel.DEBUG);
+                drivetrain.printTelemetry(telemetry, DrivetrainSubsystem.TelemetryLevel.DEBUG);
+                turret.printTelemetry(telemetry, TurretSubsystem.TelemetryLevel.DEBUG);
+                vision.printTelemetry(telemetry, VisionSubsystem.TelemetryLevel.DEBUG);
+                shooter.printTelemetry(telemetry, ShooterSubsystem.TelemetryLevel.DEBUG);
+                intake.printTelemetry(telemetry, IntakeSubsystem.TelemetryLevel.DEBUG);
                 break;
         }
 

@@ -39,21 +39,13 @@ public class VisionSubsystem {
 
     public VisionSubsystem(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
-        try {
-            limelight = hardwareMap.get(Limelight3A.class, "limelight");
-            if (limelight != null) {
-                limelight.pipelineSwitch(GOAL_PIPELINE);
-                limelight.start();
-            }
-        } catch (Exception e) {
-            limelight = null;
-        }
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight.pipelineSwitch(GOAL_PIPELINE);
+        limelight.start();
     }
 
     public void update() {
-        if (limelight != null) {
-            latestResult = limelight.getLatestResult();
-        }
+        latestResult = limelight.getLatestResult();
 
         if (hasTarget()) {
             double rawTx = getTargetX();
@@ -118,9 +110,7 @@ public class VisionSubsystem {
         if (currentPipeline != pipelineIndex) {
             currentPipeline = pipelineIndex;
             resetFilter();
-            if (limelight != null) {
-                limelight.pipelineSwitch(pipelineIndex);
-            }
+            limelight.pipelineSwitch(pipelineIndex);
         }
     }
 

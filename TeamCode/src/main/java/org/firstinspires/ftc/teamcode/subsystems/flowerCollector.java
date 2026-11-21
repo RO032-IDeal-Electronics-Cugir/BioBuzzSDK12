@@ -21,22 +21,14 @@ public class flowerCollector {
     }
 
     public void goToZero() {
-        if (collectorServo != null) {
-            collectorServo.setPosition(ZERO_POSITION);
-        }
+        collectorServo.setPosition(ZERO_POSITION);
     }
 
     public void collect() {
-        if (collectorServo != null) {
-            collectorServo.setPosition(COLLECT_POSITION);
-        }
+        collectorServo.setPosition(COLLECT_POSITION);
     }
 
     public void printTelemetry(Telemetry telemetry) {
-        if (collectorServo != null) {
-            telemetry.addData("Bara Intake Pos", collectorServo.getPosition());
-        } else {
-            telemetry.addData("Bara Intake", "NULL");
-        }
+        telemetry.addData("Bara Intake Pos", collectorServo.getPosition());
     }
 }

@@ -30,9 +30,7 @@ public class VisionAlignTeleOp extends RobotOpMode {
         );
         visionAlignCommand = new VisionAlignCommand(robot, pdController);
 
-        if (robot.flowerCollector != null) {
-            robot.flowerCollector.goToZero();
-        }
+        robot.flowerCollector.goToZero();
 
         robot.drivetrain.usePreviousStartingPose();
     }
@@ -124,12 +122,10 @@ public class VisionAlignTeleOp extends RobotOpMode {
         }
 
         // Gamepad 1 - Bara la intake
-        if (robot.flowerCollector != null) {
-            if (gamepad1.dpadUpWasPressed()) {
-                robot.flowerCollector.goToZero();
-            } else if (gamepad1.dpadDownWasPressed()) {
-                robot.flowerCollector.collect();
-            }
+        if (gamepad1.dpadUpWasPressed()) {
+            robot.flowerCollector.goToZero();
+        } else if (gamepad1.dpadDownWasPressed()) {
+            robot.flowerCollector.collect();
         }
 
         // Gamepad 2 - Schimbare Alianță

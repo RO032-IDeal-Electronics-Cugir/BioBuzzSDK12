@@ -18,10 +18,8 @@ public class VisionAlignCommand {
 
     public void start() {
         pdController.reset();
-        if (robot.vision != null) {
-            robot.vision.resetFilter();
-            robot.vision.setPipeline(VisionSubsystem.BALL_PIPELINE);
-        }
+        robot.vision.resetFilter();
+        robot.vision.setPipeline(VisionSubsystem.BALL_PIPELINE);
     }
 
     public void execute() {
@@ -29,7 +27,7 @@ public class VisionAlignCommand {
     }
 
     public void execute(double forward, double strafe) {
-        if (robot.vision != null && robot.vision.hasTarget()) {
+        if (robot.vision.hasTarget()) {
             double error = robot.vision.getFilteredTargetX();
             double turn = pdController.calculate(error, FindingBallConfig.TOLERANCE_DEGREES);
             robot.drivetrain.drive(forward, strafe, turn, false);
@@ -39,16 +37,14 @@ public class VisionAlignCommand {
     }
 
     public boolean isAligned() {
-        if (robot.vision != null && robot.vision.hasTarget()) {
+        if (robot.vision.hasTarget()) {
             return pdController.isWithinTolerance(robot.vision.getFilteredTargetX());
         }
         return false;
     }
 
     public void stop() {
-        if (robot.vision != null) {
-            robot.vision.setPipeline(VisionSubsystem.GOAL_PIPELINE);
-        }
+        robot.vision.setPipeline(VisionSubsystem.GOAL_PIPELINE);
     }
 
     public Command build() {

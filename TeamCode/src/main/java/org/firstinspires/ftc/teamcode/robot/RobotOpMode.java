@@ -30,9 +30,7 @@ public abstract class RobotOpMode extends OpMode {
 
     @Override
     public void start() {
-        if (robot != null && robot.turret != null) {
-            robot.turret.setOpModeActive(true);
-        }
+        robot.turret.setOpModeActive(true);
     }
 
     @Override

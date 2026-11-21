@@ -61,19 +61,10 @@ public class TurretSubsystem {
         this.telemetry = telemetry;
         this.follower = follower;
 
-        try {
-            turretServo = hardwareMap.get(CRServo.class, "turretServo");
-        } catch (Exception e) {
-            turretServo = null;
-        }
-
-        try {
-            turretEncoder = hardwareMap.get(DcMotor.class, "bl");
-            turretEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            turretEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        } catch (Exception e) {
-            turretEncoder = null;
-        }
+        turretServo = hardwareMap.get(CRServo.class, "turretServo");
+        turretEncoder = hardwareMap.get(DcMotor.class, "bl");
+        turretEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turretEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     public void setFollower(Follower follower) {
@@ -121,7 +112,6 @@ public class TurretSubsystem {
     }
 
     public double getTurretAngleDeg() {
-        if (turretEncoder == null) return 0.0;
         double ticks = turretEncoder.getCurrentPosition() * (TurretConfig.INVERT_ENCODER ? -1.0 : 1.0);
         return (ticks * 360.0) / TurretConfig.TICKS_PER_TURRET_REV;
     }
@@ -136,12 +126,9 @@ public class TurretSubsystem {
     }
 
     public boolean resetEncoder() {
-        if (turretEncoder != null) {
-            turretEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            turretEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            return true;
-        }
-        return false;
+        turretEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turretEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        return true;
     }
 
     public Command periodic() {
@@ -153,9 +140,7 @@ public class TurretSubsystem {
 
             // Pauza de siguranță la Init (Fără mișcare în faza de pregătire)
             if (!isOpModeActive && !TurretConfig.ENABLED_IN_INIT) {
-                if (turretServo != null) {
-                    turretServo.setPower(0.0);
-                }
+                turretServo.setPower(0.0);
                 lastError = 0.0;
                 return;
             }
@@ -247,9 +232,7 @@ public class TurretSubsystem {
             }
 
             currentServoPower = power;
-            if (turretServo != null) {
-                turretServo.setPower(power);
-            }
+            turretServo.setPower(power);
         });
     }
 
@@ -263,7 +246,7 @@ public class TurretSubsystem {
             telemetry.addData("Turret Alliance", alliance);
             telemetry.addData("Turret Target Angle", String.format(java.util.Locale.US, "%.1f deg", currentTargetAngleDeg));
             telemetry.addData("Turret Current Angle", String.format(java.util.Locale.US, "%.1f deg", getTurretAngleDeg()));
-            telemetry.addData("Turret Raw Ticks", turretEncoder != null ? turretEncoder.getCurrentPosition() : "NULL ENCODER!");
+            telemetry.addData("Turret Raw Ticks", turretEncoder.getCurrentPosition());
             telemetry.addData("Turret Servo Power", String.format(java.util.Locale.US, "%.2f", currentServoPower));
             telemetry.addData("Turret Distance to Goal", String.format(java.util.Locale.US, "%.1f in", currentDistanceInches));
         }

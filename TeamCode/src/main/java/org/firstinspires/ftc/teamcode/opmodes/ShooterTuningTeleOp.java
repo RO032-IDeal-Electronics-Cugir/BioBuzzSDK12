@@ -437,7 +437,7 @@ public class ShooterTuningTeleOp extends RobotOpMode {
         telemetry.addData("🔄 Mod Turelă", robot.turret.getMode());
         telemetry.addData("📐 Unghi Turelă", String.format(Locale.US, "%.1f°", robot.turret.getTurretAngleDeg()));
 
-        if (robot.drivetrain != null && robot.drivetrain.getFollower() != null) {
+        if (robot.drivetrain.getFollower() != null) {
             Pose pose = robot.drivetrain.getPose();
             telemetry.addData("📍 Poziție Robot (Pedro)", String.format(Locale.US, "X: %.1f, Y: %.1f, H: %.1f°",
                     pose.x(), pose.y(), Math.toDegrees(pose.heading())));

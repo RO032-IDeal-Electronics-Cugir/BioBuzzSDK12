@@ -74,9 +74,7 @@ public class AutoOpMode extends LinearOpMode {
 
         if (isStopRequested()) return;
 
-        if (robot != null && robot.turret != null) {
-            robot.turret.setOpModeActive(true);
-        }
+        robot.turret.setOpModeActive(true);
 
         Path path1 = line(startPose, new Pose(startPose.x() + 24, startPose.y(), startPose.heading())).constant(startPose.heading());
 
