@@ -63,8 +63,20 @@ public class ShooterTuningTeleOp extends RobotOpMode {
 
         loadExistingCsvData();
 
-        // Retine pozitia din autonomie daca exista
+        // Retine pozitia din autonomie daca exista; altfel aplica pozitia implicita conform alianței curente
         robot.drivetrain.usePreviousStartingPose();
+        Pose currentPose = robot.drivetrain.getPose();
+        if (Math.abs(currentPose.x()) < 1e-3 && Math.abs(currentPose.y()) < 1e-3 && Math.abs(currentPose.heading()) < 1e-3) {
+            double startX = (robot.getAlliance() == Alliance.BLUE) ? TurretConfig.BLUE_START_X : TurretConfig.RED_START_X;
+            double startY = (robot.getAlliance() == Alliance.BLUE) ? TurretConfig.BLUE_START_Y : TurretConfig.RED_START_Y;
+            double startHeadingDeg = (robot.getAlliance() == Alliance.BLUE) ? TurretConfig.BLUE_START_HEADING_DEG : TurretConfig.RED_START_HEADING_DEG;
+
+            robot.drivetrain.setStartingPose(new Pose(
+                    startX,
+                    startY,
+                    Math.toRadians(startHeadingDeg)
+            ));
+        }
     }
 
     @Override
@@ -187,9 +199,25 @@ public class ShooterTuningTeleOp extends RobotOpMode {
             }
         }
 
-        // Gamepad 2 - Toggle Flywheels ON / OFF (Square / Patrat)
+        // Gamepad 2 - Toggle Flywheels ON / OFF & Intake/Transfer (Square / Patrat conform TuningTarget)
         if (gamepad2.squareWasPressed()) {
-            robot.shooter.toggle();
+            switch (tuningTarget) {
+                case POLLEN_ONLY:
+                    robot.shooter.togglePollen();
+                    break;
+                case NECTAR_ONLY:
+                    robot.shooter.toggleNectar();
+                    break;
+                case BOTH:
+                    robot.shooter.toggle();
+                    break;
+            }
+
+            if (robot.shooter.isRunning()) {
+                robot.intake.on();
+            } else {
+                robot.intake.stop();
+            }
         }
 
         // Gamepad 2 - Control Turelă (Cross = AUTO_AIM, Circle = MANUAL, R3 = RESET ZERO)
@@ -419,7 +447,8 @@ public class ShooterTuningTeleOp extends RobotOpMode {
     private void printTuningTelemetry() {
         telemetry.addLine("═════════════ SHOOTER TUNING TELEOP ═════════════");
         telemetry.addData("🎯 Țintă Activă Tuning", tuningTarget);
-        telemetry.addData("⚡ Flywheels Status", robot.shooter.isRunning() ? "🟢 ON" : "🔴 OFF");
+        telemetry.addData("⚡ Flywheel Pollen", robot.shooter.isPollenRunning() ? "🟢 ON" : "🔴 OFF");
+        telemetry.addData("⚡ Flywheel Nectar", robot.shooter.isNectarRunning() ? "🟢 ON" : "🔴 OFF");
         telemetry.addData("📂 Sursă Coeficienți Curenți", ShooterSubsystem.coefficientsSource);
         telemetry.addData("📏 Distanță calculată", String.format(Locale.US, "%.2f in (%.2f m)",
                 robot.turret.getCurrentDistanceInches(), robot.turret.getCurrentDistanceInches() * 0.0254));
@@ -450,7 +479,7 @@ public class ShooterTuningTeleOp extends RobotOpMode {
         telemetry.addLine("═════════════ CONTROALE GAMEPAD 2 ═════════════");
         telemetry.addLine("• L1 / Share: Comută POLLEN / NECTAR / BOTH");
         telemetry.addLine("• DPad Sus/Jos: ±Power | DPad Stânga/Dreapta: ±Pitch Servo");
-        telemetry.addLine("• Pătrat: Pornire / Oprire Flywheels");
+        telemetry.addLine("• Pătrat: Pornire / Oprire Flywheels + Intake & Transfer");
         telemetry.addLine("• Triunghi: SALVARE PUNCT ÎN CSV & MEMORIE");
         telemetry.addLine("• R1 + Triunghi: CALCUL AUTOMAT REGRESIE & SALVARE JSON");
         telemetry.addLine("• R3 (Stick Dreapta): RESETARE ZERO TURELĂ (0° DREPT ÎNAINTE)");

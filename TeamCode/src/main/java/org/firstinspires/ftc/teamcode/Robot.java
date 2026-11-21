@@ -36,7 +36,7 @@ public class Robot {
     public VisionSubsystem vision;
     public TurretSubsystem turret;
 
-    public boolean isAutoShooterAdjustmentEnabled = true;
+    public boolean isAutoShooterAdjustmentEnabled = false;
 
     public Robot(OpMode opMode) {
         this.hardwareMap = opMode.hardwareMap;

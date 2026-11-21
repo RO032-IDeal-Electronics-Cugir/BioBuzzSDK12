@@ -33,13 +33,14 @@ public class ShooterSubsystem {
     private Servo pitchServoPollen;
     private Servo pitchServoNectar;
 
-    private double pollenPower = 0.85;
-    private double nectarPower = 0.85;
-    private double pollenPitchPosition = 0.50;
-    private double nectarPitchPosition = 0.50;
+    private double pollenPower = ShooterConfig.DEFAULT_POLLEN_POWER;
+    private double nectarPower = ShooterConfig.DEFAULT_NECTAR_POWER;
+    private double pollenPitchPosition = ShooterConfig.DEFAULT_POLLEN_PITCH;
+    private double nectarPitchPosition = ShooterConfig.DEFAULT_NECTAR_PITCH;
 
     private Telemetry telemetry;
-    private boolean isRunning = false;
+    private boolean isPollenRunning = false;
+    private boolean isNectarRunning = false;
 
     public ShooterSubsystem(HardwareMap hardwareMap) {
         this(hardwareMap, null);
@@ -49,6 +50,11 @@ public class ShooterSubsystem {
         this.telemetry = telemetry;
 
         loadCoefficientsFromJson();
+
+        this.pollenPower = ShooterConfig.DEFAULT_POLLEN_POWER;
+        this.nectarPower = ShooterConfig.DEFAULT_NECTAR_POWER;
+        this.pollenPitchPosition = Math.max(ShooterConfig.MIN_PITCH_POSITION, Math.min(ShooterConfig.MAX_PITCH_POSITION, ShooterConfig.DEFAULT_POLLEN_PITCH));
+        this.nectarPitchPosition = Math.max(ShooterConfig.MIN_PITCH_POSITION, Math.min(ShooterConfig.MAX_PITCH_POSITION, ShooterConfig.DEFAULT_NECTAR_PITCH));
 
         pollenMotor = hardwareMap.get(DcMotor.class, "pollenMotor");
         pollenMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -60,6 +66,13 @@ public class ShooterSubsystem {
 
         pitchServoPollen = hardwareMap.get(Servo.class, "pitchServoPollen");
         pitchServoNectar = hardwareMap.get(Servo.class, "pitchServoNectar");
+
+        if (pitchServoPollen != null) {
+            pitchServoPollen.setPosition(this.pollenPitchPosition);
+        }
+        if (pitchServoNectar != null) {
+            pitchServoNectar.setPosition(this.nectarPitchPosition);
+        }
     }
 
     public static void loadCoefficientsFromJson() {
@@ -263,13 +276,17 @@ public class ShooterSubsystem {
     }
 
     public void setPollenPitchPosition(double position) {
-        this.pollenPitchPosition = Math.max(0.0, Math.min(1.0, position));
-        pitchServoPollen.setPosition(this.pollenPitchPosition);
+        this.pollenPitchPosition = Math.max(ShooterConfig.MIN_PITCH_POSITION, Math.min(ShooterConfig.MAX_PITCH_POSITION, position));
+        if (pitchServoPollen != null) {
+            pitchServoPollen.setPosition(this.pollenPitchPosition);
+        }
     }
 
     public void setNectarPitchPosition(double position) {
-        this.nectarPitchPosition = Math.max(0.0, Math.min(1.0, position));
-        pitchServoNectar.setPosition(this.nectarPitchPosition);
+        this.nectarPitchPosition = Math.max(ShooterConfig.MIN_PITCH_POSITION, Math.min(ShooterConfig.MAX_PITCH_POSITION, position));
+        if (pitchServoNectar != null) {
+            pitchServoNectar.setPosition(this.nectarPitchPosition);
+        }
     }
 
     public double getPollenPitchPosition() {
@@ -296,12 +313,46 @@ public class ShooterSubsystem {
         setNectarPitchPosition(nectarPitchPosition + delta);
     }
 
+    public void turnOnPollen() {
+        isPollenRunning = true;
+    }
+
+    public void turnOffPollen() {
+        isPollenRunning = false;
+    }
+
+    public void togglePollen() {
+        isPollenRunning = !isPollenRunning;
+    }
+
+    public boolean isPollenRunning() {
+        return isPollenRunning;
+    }
+
+    public void turnOnNectar() {
+        isNectarRunning = true;
+    }
+
+    public void turnOffNectar() {
+        isNectarRunning = false;
+    }
+
+    public void toggleNectar() {
+        isNectarRunning = !isNectarRunning;
+    }
+
+    public boolean isNectarRunning() {
+        return isNectarRunning;
+    }
+
     public void turnOn() {
-        isRunning = true;
+        isPollenRunning = true;
+        isNectarRunning = true;
     }
 
     public void turnOff() {
-        isRunning = false;
+        isPollenRunning = false;
+        isNectarRunning = false;
     }
 
     public void stop() {
@@ -309,11 +360,15 @@ public class ShooterSubsystem {
     }
 
     public void toggle() {
-        isRunning = !isRunning;
+        if (isPollenRunning || isNectarRunning) {
+            turnOff();
+        } else {
+            turnOn();
+        }
     }
 
     public boolean isRunning() {
-        return isRunning;
+        return isPollenRunning || isNectarRunning;
     }
 
     public void increasePower(double delta) {
@@ -346,13 +401,8 @@ public class ShooterSubsystem {
 
     public Command periodic() {
         return infinite(() -> {
-            if (isRunning) {
-                pollenMotor.setPower(pollenPower);
-                nectarMotor.setPower(nectarPower);
-            } else {
-                pollenMotor.setPower(0.0);
-                nectarMotor.setPower(0.0);
-            }
+            pollenMotor.setPower(isPollenRunning ? pollenPower : 0.0);
+            nectarMotor.setPower(isNectarRunning ? nectarPower : 0.0);
 
             pitchServoPollen.setPosition(pollenPitchPosition);
             pitchServoNectar.setPosition(nectarPitchPosition);
@@ -362,7 +412,8 @@ public class ShooterSubsystem {
     public void printTelemetry(Telemetry telemetry, TelemetryLevel level) {
         if (telemetry == null || level == TelemetryLevel.NONE) return;
 
-        telemetry.addData("Shooter Status", isRunning ? "ON" : "OFF");
+        telemetry.addData("Shooter Pollen", isPollenRunning ? "ON" : "OFF");
+        telemetry.addData("Shooter Nectar", isNectarRunning ? "ON" : "OFF");
         telemetry.addData("Sursă Coeficienți", ShooterConfig.COEFFICIENTS_SOURCE);
         telemetry.addData("Pollen Shooter", String.format(java.util.Locale.US, "Pwr: %.2f | Pitch: %.3f", pollenPower, pollenPitchPosition));
         telemetry.addData("Nectar Shooter", String.format(java.util.Locale.US, "Pwr: %.2f | Pitch: %.3f", nectarPower, nectarPitchPosition));

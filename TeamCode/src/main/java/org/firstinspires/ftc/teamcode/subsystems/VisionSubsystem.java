@@ -39,13 +39,23 @@ public class VisionSubsystem {
 
     public VisionSubsystem(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(GOAL_PIPELINE);
-        limelight.start();
+        try {
+            limelight = hardwareMap.get(Limelight3A.class, "limelight");
+            if (limelight != null) {
+                limelight.pipelineSwitch(GOAL_PIPELINE);
+                limelight.start();
+            }
+        } catch (Exception e) {
+            limelight = null;
+        }
     }
 
     public void update() {
-        latestResult = limelight.getLatestResult();
+        if (limelight != null) {
+            latestResult = limelight.getLatestResult();
+        } else {
+            latestResult = null;
+        }
 
         if (hasTarget()) {
             double rawTx = getTargetX();
@@ -110,7 +120,9 @@ public class VisionSubsystem {
         if (currentPipeline != pipelineIndex) {
             currentPipeline = pipelineIndex;
             resetFilter();
-            limelight.pipelineSwitch(pipelineIndex);
+            if (limelight != null) {
+                limelight.pipelineSwitch(pipelineIndex);
+            }
         }
     }
 
@@ -136,6 +148,11 @@ public class VisionSubsystem {
 
     public void printTelemetry(Telemetry telemetry, TelemetryLevel level) {
         if (telemetry == null || level == TelemetryLevel.NONE) return;
+
+        if (limelight == null) {
+            telemetry.addData("Limelight Status", "❌ DECONECTAT / NEMONTAT");
+            return;
+        }
 
         boolean targetFound = hasTarget();
         telemetry.addData("Limelight Target", targetFound ? "FOUND" : "NOT FOUND");

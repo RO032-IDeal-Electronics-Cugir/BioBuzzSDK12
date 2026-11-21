@@ -32,7 +32,20 @@ public class VisionAlignTeleOp extends RobotOpMode {
 
         robot.intake.raiseBar();
 
+        // Retine pozitia din autonomie daca exista; altfel aplica pozitia implicita conform alianței curente
         robot.drivetrain.usePreviousStartingPose();
+        com.pedropathing.math.Pose currentPose = robot.drivetrain.getPose();
+        if (Math.abs(currentPose.x()) < 1e-3 && Math.abs(currentPose.y()) < 1e-3 && Math.abs(currentPose.heading()) < 1e-3) {
+            double startX = (robot.getAlliance() == Alliance.BLUE) ? TurretConfig.BLUE_START_X : TurretConfig.RED_START_X;
+            double startY = (robot.getAlliance() == Alliance.BLUE) ? TurretConfig.BLUE_START_Y : TurretConfig.RED_START_Y;
+            double startHeadingDeg = (robot.getAlliance() == Alliance.BLUE) ? TurretConfig.BLUE_START_HEADING_DEG : TurretConfig.RED_START_HEADING_DEG;
+
+            robot.drivetrain.setStartingPose(new com.pedropathing.math.Pose(
+                    startX,
+                    startY,
+                    Math.toRadians(startHeadingDeg)
+            ));
+        }
     }
 
     @Override
@@ -65,6 +78,7 @@ public class VisionAlignTeleOp extends RobotOpMode {
     @Override
     public void start() {
         super.start();
+        robot.isAutoShooterAdjustmentEnabled = true;
 
         if (!Alliance.isAllianceSelected) {
             robot.turret.setMode(TurretSubsystem.Mode.LOCK_FORWARD);

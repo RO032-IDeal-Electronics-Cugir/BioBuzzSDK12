@@ -25,4 +25,13 @@ public class ShooterConfig {
     public static double NECTAR_PITCH_C = 0.40;
 
     public static double TARGET_POWER = 0.85;
+
+    // Valori implicite Shooter & Limite Mecanice (Configurabile în FTCDashboard / Panels)
+    public static double DEFAULT_POLLEN_POWER = 0.85;
+    public static double DEFAULT_NECTAR_POWER = 0.85;
+    public static double DEFAULT_POLLEN_PITCH = 0.80;
+    public static double DEFAULT_NECTAR_PITCH = 0.80;
+
+    public static double MAX_PITCH_POSITION = 0.80;
+    public static double MIN_PITCH_POSITION = 0.0;
 }
