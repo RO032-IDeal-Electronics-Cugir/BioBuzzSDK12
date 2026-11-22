@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.teamcode.configurables.ShooterConfig;
 import org.firstinspires.ftc.teamcode.configurables.TurretConfig;
@@ -104,25 +105,27 @@ public class ShooterTuningTeleOp extends RobotOpMode {
             }
         }
 
+        Telemetry t = (robot != null && robot.telemetry != null) ? robot.telemetry : telemetry;
+
         // Posibilitate resetare unghi turela la 0 grade in faza de INIT (Edge triggered)
         if (gamepad2.rightStickButtonWasPressed()) {
             boolean resetOk = robot.turret.resetEncoder();
             if (resetOk) {
-                telemetry.addData("Turelă Status", "🟢 ORIGINE 0° RESETATĂ CU SUCCES!");
+                t.addData("Turelă Status", "🟢 ORIGINE 0° RESETATĂ CU SUCCES!");
             } else {
-                telemetry.addData("Turelă Status", "❌ EROARE: Hardware encoder turelă negăsit!");
+                t.addData("Turelă Status", "❌ EROARE: Hardware encoder turelă negăsit!");
             }
         }
 
-        telemetry.addData("Tuning Mode", "OpMode pregătit pentru calibrare shooter.");
-        telemetry.addData("Alianță curentă", robot.getAlliance());
-        telemetry.addData("Puncte Pollen pe Disk", pollenPointsCount);
-        telemetry.addData("Puncte Nectar pe Disk", nectarPointsCount);
-        telemetry.addData("📂 Sursă Coeficienți Curenți", ShooterSubsystem.coefficientsSource);
-        telemetry.addLine("------------------------------------------------");
-        telemetry.addLine("📍 ATENȚIE: Orientează turela DREPT ÎNAINTE (0°) înainte de PLAY!");
-        telemetry.addLine("   (sau apasă Gamepad 2 R3 pentru Reset Zero Turelă la 0°)");
-        telemetry.update();
+        t.addData("Tuning Mode", "OpMode pregătit pentru calibrare shooter.");
+        t.addData("Alianță curentă", robot.getAlliance());
+        t.addData("Puncte Pollen pe Disk", pollenPointsCount);
+        t.addData("Puncte Nectar pe Disk", nectarPointsCount);
+        t.addData("📂 Sursă Coeficienți Curenți", ShooterSubsystem.coefficientsSource);
+        t.addLine("------------------------------------------------");
+        t.addLine("📍 ATENȚIE: Orientează turela DREPT ÎNAINTE (0°) înainte de PLAY!");
+        t.addLine("   (sau apasă Gamepad 2 R3 pentru Reset Zero Turelă la 0°)");
+        t.update();
     }
 
     @Override
@@ -446,56 +449,55 @@ public class ShooterTuningTeleOp extends RobotOpMode {
     }
 
     private void printTuningTelemetry() {
-        telemetry.addLine("═════════════ SHOOTER TUNING TELEOP ═════════════");
-        telemetry.addData("🎯 Țintă Activă Tuning", tuningTarget);
-        telemetry.addData("⚡ Flywheel Pollen", robot.shooter.isPollenRunning() ? "🟢 ON" : "🔴 OFF");
-        telemetry.addData("⚡ Flywheel Nectar", robot.shooter.isNectarRunning() ? "🟢 ON" : "🔴 OFF");
-        telemetry.addData("📂 Sursă Coeficienți Curenți", ShooterSubsystem.coefficientsSource);
-        telemetry.addData("📏 Distanță calculată", String.format(Locale.US, "%.2f in (%.2f m)",
+        Telemetry t = (robot != null && robot.telemetry != null) ? robot.telemetry : telemetry;
+
+        t.addLine("═════════════ SHOOTER TUNING TELEOP ═════════════");
+        t.addData("🎯 Țintă Activă Tuning", tuningTarget);
+        t.addData("⚡ Flywheel Pollen", robot.shooter.isPollenRunning() ? "🟢 ON" : "🔴 OFF");
+        t.addData("⚡ Flywheel Nectar", robot.shooter.isNectarRunning() ? "🟢 ON" : "🔴 OFF");
+        t.addData("📂 Sursă Coeficienți Curenți", ShooterSubsystem.coefficientsSource);
+        t.addData("📏 Distanță calculată", String.format(Locale.US, "%.2f in (%.2f m)",
                 robot.turret.getCurrentDistanceInches(), robot.turret.getCurrentDistanceInches() * 0.0254));
 
-        telemetry.addLine("------------------------------------------------");
-        telemetry.addData("🌸 POLLEN Shooter", String.format(Locale.US, "RPM: %.0f (Curent: %.0f) | Pitch Servo: %.3f",
-                robot.shooter.getPollenRPM(), robot.shooter.getPollenCurrentRPM(), robot.shooter.getPollenPitchPosition()));
-        telemetry.addData("🍯 NECTAR Shooter", String.format(Locale.US, "RPM: %.0f (Curent: %.0f) | Pitch Servo: %.3f",
-                robot.shooter.getNectarRPM(), robot.shooter.getNectarCurrentRPM(), robot.shooter.getNectarPitchPosition()));
+        t.addLine("------------------------------------------------");
+        robot.shooter.printTelemetry(t, ShooterSubsystem.TelemetryLevel.MATCH);
 
-        telemetry.addLine("═════════════ COEFICIENȚI HARDWARE PIDF (REV HUB) ═════════════");
-        telemetry.addData("⚙️ Pollen Default REV PIDF", ShooterSubsystem.defaultPollenPidf);
-        telemetry.addData("⚙️ Nectar Default REV PIDF", ShooterSubsystem.defaultNectarPidf);
+        t.addLine("═════════════ COEFICIENȚI HARDWARE PIDF (REV HUB) ═════════════");
+        t.addData("⚙️ Pollen Default REV PIDF", ShooterSubsystem.defaultPollenPidf);
+        t.addData("⚙️ Nectar Default REV PIDF", ShooterSubsystem.defaultNectarPidf);
         if (ShooterConfig.ENABLE_CUSTOM_PIDF) {
-            telemetry.addData("🎛️ Pollen Active PIDF", String.format(Locale.US, "P=%.2f, I=%.2f, D=%.2f, F=%.2f",
+            t.addData("🎛️ Pollen Active PIDF", String.format(Locale.US, "P=%.2f, I=%.2f, D=%.2f, F=%.2f",
                     ShooterConfig.POLLEN_PIDF_P, ShooterConfig.POLLEN_PIDF_I, ShooterConfig.POLLEN_PIDF_D, ShooterConfig.POLLEN_PIDF_F));
-            telemetry.addData("🎛️ Nectar Active PIDF", String.format(Locale.US, "P=%.2f, I=%.2f, D=%.2f, F=%.2f",
+            t.addData("🎛️ Nectar Active PIDF", String.format(Locale.US, "P=%.2f, I=%.2f, D=%.2f, F=%.2f",
                     ShooterConfig.NECTAR_PIDF_P, ShooterConfig.NECTAR_PIDF_I, ShooterConfig.NECTAR_PIDF_D, ShooterConfig.NECTAR_PIDF_F));
         }
 
-        telemetry.addLine("------------------------------------------------");
-        telemetry.addData("🔄 Mod Turelă", robot.turret.getMode());
-        telemetry.addData("📐 Unghi Turelă", String.format(Locale.US, "%.1f°", robot.turret.getTurretAngleDeg()));
+        t.addLine("------------------------------------------------");
+        t.addData("🔄 Mod Turelă", robot.turret.getMode());
+        t.addData("📐 Unghi Turelă", String.format(Locale.US, "%.1f°", robot.turret.getTurretAngleDeg()));
 
         if (robot.drivetrain.getFollower() != null) {
             Pose pose = robot.drivetrain.getPose();
-            telemetry.addData("📍 Poziție Robot (Pedro)", String.format(Locale.US, "X: %.1f, Y: %.1f, H: %.1f°",
+            t.addData("📍 Poziție Robot (Pedro)", String.format(Locale.US, "X: %.1f, Y: %.1f, H: %.1f°",
                     pose.x(), pose.y(), Math.toDegrees(pose.heading())));
         }
 
-        telemetry.addLine("═════════════ FIȘIERE CSV & CALCUL REGRESIE ═════════════");
-        telemetry.addData("📊 Puncte Pollen Salvate", String.format(Locale.US, "%d (Ultimul: %s)", pollenPointsCount, lastPollenEntry));
-        telemetry.addData("📊 Puncte Nectar Salvate", String.format(Locale.US, "%d (Ultimul: %s)", nectarPointsCount, lastNectarEntry));
-        telemetry.addLine("------------------------------------------------");
-        telemetry.addLine("🧮 STATUT REGRESIE AUTOMATĂ:");
-        telemetry.addLine(lastRegressionSummary);
+        t.addLine("═════════════ FIȘIERE CSV & CALCUL REGRESIE ═════════════");
+        t.addData("📊 Puncte Pollen Salvate", String.format(Locale.US, "%d (Ultimul: %s)", pollenPointsCount, lastPollenEntry));
+        t.addData("📊 Puncte Nectar Salvate", String.format(Locale.US, "%d (Ultimul: %s)", nectarPointsCount, lastNectarEntry));
+        t.addLine("------------------------------------------------");
+        t.addLine("🧮 STATUT REGRESIE AUTOMATĂ:");
+        t.addLine(lastRegressionSummary);
 
-        telemetry.addLine("═════════════ CONTROALE GAMEPAD 2 ═════════════");
-        telemetry.addLine("• L1 / Share: Comută POLLEN / NECTAR / BOTH");
-        telemetry.addLine("• DPad Sus/Jos: ±RPM (50/250 RPM) | DPad Stânga/Dreapta: ±Pitch Servo");
-        telemetry.addLine("• Pătrat: Pornire / Oprire Flywheels + Intake & Transfer");
-        telemetry.addLine("• Triunghi: SALVARE PUNCT ÎN CSV & MEMORIE");
-        telemetry.addLine("• R1 + Triunghi: CALCUL AUTOMAT REGRESIE & SALVARE JSON");
-        telemetry.addLine("• R3 (Stick Dreapta): RESETARE ZERO TURELĂ (0° DREPT ÎNAINTE)");
-        telemetry.addLine("• Touchpad + Triunghi: RESETARE PUNCTE & CSV");
+        t.addLine("═════════════ CONTROALE GAMEPAD 2 ═════════════");
+        t.addLine("• L1 / Share: Comută POLLEN / NECTAR / BOTH");
+        t.addLine("• DPad Sus/Jos: ±RPM (50/250 RPM) | DPad Stânga/Dreapta: ±Pitch Servo");
+        t.addLine("• Pătrat: Pornire / Oprire Flywheels + Intake & Transfer");
+        t.addLine("• Triunghi: SALVARE PUNCT ÎN CSV & MEMORIE");
+        t.addLine("• R1 + Triunghi: CALCUL AUTOMAT REGRESIE & SALVARE JSON");
+        t.addLine("• R3 (Stick Dreapta): RESETARE ZERO TURELĂ (0° DREPT ÎNAINTE)");
+        t.addLine("• Touchpad + Triunghi: RESETARE PUNCTE & CSV");
 
-        telemetry.update();
+        t.update();
     }
 }

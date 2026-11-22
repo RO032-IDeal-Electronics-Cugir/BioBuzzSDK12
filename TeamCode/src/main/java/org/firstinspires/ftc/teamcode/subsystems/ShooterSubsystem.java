@@ -62,6 +62,7 @@ public class ShooterSubsystem {
 
         try {
             pollenMotor = hardwareMap.get(DcMotorEx.class, "pollenMotor");
+            pollenMotor.setDirection(ShooterConfig.POLLEN_MOTOR_DIRECTION);
             pollenMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             pollenMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         } catch (Exception e) {
@@ -70,6 +71,7 @@ public class ShooterSubsystem {
 
         try {
             nectarMotor = hardwareMap.get(DcMotorEx.class, "nectarMotor");
+            nectarMotor.setDirection(ShooterConfig.NECTAR_MOTOR_DIRECTION);
             nectarMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             nectarMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         } catch (Exception e) {
@@ -528,10 +530,12 @@ public class ShooterSubsystem {
             updatePIDFCoefficients();
 
             if (pollenMotor != null) {
+                pollenMotor.setDirection(ShooterConfig.POLLEN_MOTOR_DIRECTION);
                 double targetTicks = isPollenRunning ? rpmToTicksPerSec(pollenRPM) : 0.0;
                 pollenMotor.setVelocity(targetTicks);
             }
             if (nectarMotor != null) {
+                nectarMotor.setDirection(ShooterConfig.NECTAR_MOTOR_DIRECTION);
                 double targetTicks = isNectarRunning ? rpmToTicksPerSec(nectarRPM) : 0.0;
                 nectarMotor.setVelocity(targetTicks);
             }
