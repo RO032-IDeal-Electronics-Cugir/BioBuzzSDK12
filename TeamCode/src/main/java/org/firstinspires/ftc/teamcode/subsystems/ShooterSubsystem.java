@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.pedropathing.ivy.Command;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -38,8 +37,8 @@ public class ShooterSubsystem {
     private Servo pitchServoPollen;
     private Servo pitchServoNectar;
 
-    private double pollenPower = ShooterConfig.DEFAULT_POLLEN_POWER;
-    private double nectarPower = ShooterConfig.DEFAULT_NECTAR_POWER;
+    private double pollenRPM = ShooterConfig.DEFAULT_POLLEN_RPM;
+    private double nectarRPM = ShooterConfig.DEFAULT_NECTAR_RPM;
     private double pollenPitchPosition = ShooterConfig.DEFAULT_POLLEN_PITCH;
     private double nectarPitchPosition = ShooterConfig.DEFAULT_NECTAR_PITCH;
 
@@ -56,8 +55,8 @@ public class ShooterSubsystem {
 
         loadCoefficientsFromJson();
 
-        this.pollenPower = ShooterConfig.DEFAULT_POLLEN_POWER;
-        this.nectarPower = ShooterConfig.DEFAULT_NECTAR_POWER;
+        this.pollenRPM = ShooterConfig.DEFAULT_POLLEN_RPM;
+        this.nectarRPM = ShooterConfig.DEFAULT_NECTAR_RPM;
         this.pollenPitchPosition = Math.max(ShooterConfig.MIN_PITCH_POSITION, Math.min(ShooterConfig.MAX_PITCH_POSITION, ShooterConfig.DEFAULT_POLLEN_PITCH));
         this.nectarPitchPosition = Math.max(ShooterConfig.MIN_PITCH_POSITION, Math.min(ShooterConfig.MAX_PITCH_POSITION, ShooterConfig.DEFAULT_NECTAR_PITCH));
 
@@ -91,6 +90,32 @@ public class ShooterSubsystem {
         }
     }
 
+    public static double rpmToTicksPerSec(double rpm) {
+        return (rpm * ShooterConfig.MOTOR_TICKS_PER_REV) / 60.0;
+    }
+
+    public static double ticksPerSecToRpm(double ticksPerSec) {
+        return (ticksPerSec * 60.0) / ShooterConfig.MOTOR_TICKS_PER_REV;
+    }
+
+    public double getPollenCurrentRPM() {
+        if (pollenMotor == null) return 0.0;
+        try {
+            return ticksPerSecToRpm(pollenMotor.getVelocity());
+        } catch (Exception e) {
+            return 0.0;
+        }
+    }
+
+    public double getNectarCurrentRPM() {
+        if (nectarMotor == null) return 0.0;
+        try {
+            return ticksPerSecToRpm(nectarMotor.getVelocity());
+        } catch (Exception e) {
+            return 0.0;
+        }
+    }
+
     public static void loadCoefficientsFromJson() {
         try {
             File mainFile = new File(AppUtil.ROOT_FOLDER, "FIRST/shooter_coefficients.json");
@@ -121,34 +146,31 @@ public class ShooterSubsystem {
 
             JSONObject json = new JSONObject(builder.toString());
 
-            boolean hasAll12Keys = json.has("pollen_power_a") && json.has("pollen_power_b") && json.has("pollen_power_c") &&
-                                   json.has("pollen_pitch_a") && json.has("pollen_pitch_b") && json.has("pollen_pitch_c") &&
-                                   json.has("nectar_power_a") && json.has("nectar_power_b") && json.has("nectar_power_c") &&
-                                   json.has("nectar_pitch_a") && json.has("nectar_pitch_b") && json.has("nectar_pitch_c");
+            boolean hasRpmKeys = json.has("pollen_rpm_a") || json.has("pollen_power_a");
 
-            ShooterConfig.POLLEN_POWER_A = json.optDouble("pollen_power_a", ShooterConfig.POLLEN_POWER_A);
-            ShooterConfig.POLLEN_POWER_B = json.optDouble("pollen_power_b", ShooterConfig.POLLEN_POWER_B);
-            ShooterConfig.POLLEN_POWER_C = json.optDouble("pollen_power_c", ShooterConfig.POLLEN_POWER_C);
+            ShooterConfig.POLLEN_RPM_A = json.optDouble("pollen_rpm_a", json.optDouble("pollen_power_a", ShooterConfig.POLLEN_RPM_A));
+            ShooterConfig.POLLEN_RPM_B = json.optDouble("pollen_rpm_b", json.optDouble("pollen_power_b", ShooterConfig.POLLEN_RPM_B));
+            ShooterConfig.POLLEN_RPM_C = json.optDouble("pollen_rpm_c", json.optDouble("pollen_power_c", ShooterConfig.POLLEN_RPM_C));
 
             ShooterConfig.POLLEN_PITCH_A = json.optDouble("pollen_pitch_a", ShooterConfig.POLLEN_PITCH_A);
             ShooterConfig.POLLEN_PITCH_B = json.optDouble("pollen_pitch_b", ShooterConfig.POLLEN_PITCH_B);
             ShooterConfig.POLLEN_PITCH_C = json.optDouble("pollen_pitch_c", ShooterConfig.POLLEN_PITCH_C);
 
-            ShooterConfig.NECTAR_POWER_A = json.optDouble("nectar_power_a", ShooterConfig.NECTAR_POWER_A);
-            ShooterConfig.NECTAR_POWER_B = json.optDouble("nectar_power_b", ShooterConfig.NECTAR_POWER_B);
-            ShooterConfig.NECTAR_POWER_C = json.optDouble("nectar_power_c", ShooterConfig.NECTAR_POWER_C);
+            ShooterConfig.NECTAR_RPM_A = json.optDouble("nectar_rpm_a", json.optDouble("nectar_power_a", ShooterConfig.NECTAR_RPM_A));
+            ShooterConfig.NECTAR_RPM_B = json.optDouble("nectar_rpm_b", json.optDouble("nectar_power_b", ShooterConfig.NECTAR_RPM_B));
+            ShooterConfig.NECTAR_RPM_C = json.optDouble("nectar_rpm_c", json.optDouble("nectar_power_c", ShooterConfig.NECTAR_RPM_C));
 
             ShooterConfig.NECTAR_PITCH_A = json.optDouble("nectar_pitch_a", ShooterConfig.NECTAR_PITCH_A);
             ShooterConfig.NECTAR_PITCH_B = json.optDouble("nectar_pitch_b", ShooterConfig.NECTAR_PITCH_B);
             ShooterConfig.NECTAR_PITCH_C = json.optDouble("nectar_pitch_c", ShooterConfig.NECTAR_PITCH_C);
 
-            boolean validFinite = Double.isFinite(ShooterConfig.POLLEN_POWER_A) && Double.isFinite(ShooterConfig.POLLEN_PITCH_A) &&
-                                 Double.isFinite(ShooterConfig.NECTAR_POWER_A) && Double.isFinite(ShooterConfig.NECTAR_PITCH_A);
+            boolean validFinite = Double.isFinite(ShooterConfig.POLLEN_RPM_A) && Double.isFinite(ShooterConfig.POLLEN_PITCH_A) &&
+                                 Double.isFinite(ShooterConfig.NECTAR_RPM_A) && Double.isFinite(ShooterConfig.NECTAR_PITCH_A);
 
-            if (hasAll12Keys && validFinite) {
+            if (hasRpmKeys && validFinite) {
                 ShooterConfig.COEFFICIENTS_SOURCE = isRecovered
                         ? "JSON_RECUPERAT_DIN_BACKUP (shooter_coefficients.bak)"
-                        : "JSON (Încărcat complet 12 chei din shooter_coefficients.json)";
+                        : "JSON (Încărcat complet din shooter_coefficients.json)";
             } else {
                 ShooterConfig.COEFFICIENTS_SOURCE = "JSON_PARȚIAL (Lipsesc chei din fișier sau valori nefinite)";
             }
@@ -158,43 +180,43 @@ public class ShooterSubsystem {
         coefficientsSource = ShooterConfig.COEFFICIENTS_SOURCE;
     }
 
-    public static boolean saveCoefficientsToJson(double[] pollenPower, double[] pollenPitch, double[] nectarPower, double[] nectarPitch) {
+    public static boolean saveCoefficientsToJson(double[] pollenRpm, double[] pollenPitch, double[] nectarRpm, double[] nectarPitch) {
         try {
-            boolean updatePollen = (pollenPower != null && pollenPower.length == 3 && pollenPitch != null && pollenPitch.length == 3);
-            boolean updateNectar = (nectarPower != null && nectarPower.length == 3 && nectarPitch != null && nectarPitch.length == 3);
+            boolean updatePollen = (pollenRpm != null && pollenRpm.length == 3 && pollenPitch != null && pollenPitch.length == 3);
+            boolean updateNectar = (nectarRpm != null && nectarRpm.length == 3 && nectarPitch != null && nectarPitch.length == 3);
 
             if (!updatePollen && !updateNectar) {
                 return false;
             }
 
-            double newPollenPowerA = updatePollen ? pollenPower[0] : ShooterConfig.POLLEN_POWER_A;
-            double newPollenPowerB = updatePollen ? pollenPower[1] : ShooterConfig.POLLEN_POWER_B;
-            double newPollenPowerC = updatePollen ? pollenPower[2] : ShooterConfig.POLLEN_POWER_C;
+            double newPollenRpmA = updatePollen ? pollenRpm[0] : ShooterConfig.POLLEN_RPM_A;
+            double newPollenRpmB = updatePollen ? pollenRpm[1] : ShooterConfig.POLLEN_RPM_B;
+            double newPollenRpmC = updatePollen ? pollenRpm[2] : ShooterConfig.POLLEN_RPM_C;
 
             double newPollenPitchA = updatePollen ? pollenPitch[0] : ShooterConfig.POLLEN_PITCH_A;
             double newPollenPitchB = updatePollen ? pollenPitch[1] : ShooterConfig.POLLEN_PITCH_B;
             double newPollenPitchC = updatePollen ? pollenPitch[2] : ShooterConfig.POLLEN_PITCH_C;
 
-            double newNectarPowerA = updateNectar ? nectarPower[0] : ShooterConfig.NECTAR_POWER_A;
-            double newNectarPowerB = updateNectar ? nectarPower[1] : ShooterConfig.NECTAR_POWER_B;
-            double newNectarPowerC = updateNectar ? nectarPower[2] : ShooterConfig.NECTAR_POWER_C;
+            double newNectarRpmA = updateNectar ? nectarRpm[0] : ShooterConfig.NECTAR_RPM_A;
+            double newNectarRpmB = updateNectar ? nectarRpm[1] : ShooterConfig.NECTAR_RPM_B;
+            double newNectarRpmC = updateNectar ? nectarRpm[2] : ShooterConfig.NECTAR_RPM_C;
 
             double newNectarPitchA = updateNectar ? nectarPitch[0] : ShooterConfig.NECTAR_PITCH_A;
             double newNectarPitchB = updateNectar ? nectarPitch[1] : ShooterConfig.NECTAR_PITCH_B;
             double newNectarPitchC = updateNectar ? nectarPitch[2] : ShooterConfig.NECTAR_PITCH_C;
 
             JSONObject json = new JSONObject();
-            json.put("pollen_power_a", newPollenPowerA);
-            json.put("pollen_power_b", newPollenPowerB);
-            json.put("pollen_power_c", newPollenPowerC);
+            json.put("pollen_rpm_a", newPollenRpmA);
+            json.put("pollen_rpm_b", newPollenRpmB);
+            json.put("pollen_rpm_c", newPollenRpmC);
 
             json.put("pollen_pitch_a", newPollenPitchA);
             json.put("pollen_pitch_b", newPollenPitchB);
             json.put("pollen_pitch_c", newPollenPitchC);
 
-            json.put("nectar_power_a", newNectarPowerA);
-            json.put("nectar_power_b", newNectarPowerB);
-            json.put("nectar_power_c", newNectarPowerC);
+            json.put("nectar_rpm_a", newNectarRpmA);
+            json.put("nectar_rpm_b", newNectarRpmB);
+            json.put("nectar_rpm_c", newNectarRpmC);
 
             json.put("nectar_pitch_a", newNectarPitchA);
             json.put("nectar_pitch_b", newNectarPitchB);
@@ -220,13 +242,11 @@ public class ShooterSubsystem {
                 return false;
             }
 
-            // Backup al fișierului vechi înainte de înlocuire
             if (finalFile.exists()) {
                 if (bakFile.exists()) bakFile.delete();
                 finalFile.renameTo(bakFile);
             }
 
-            // Înlocuire sigură de fișiere (tmp -> final)
             boolean renamed = tmpFile.renameTo(finalFile);
             if (!renamed) {
                 if (finalFile.exists()) {
@@ -239,17 +259,17 @@ public class ShooterSubsystem {
                 if (bakFile.exists()) bakFile.delete();
 
                 if (updatePollen) {
-                    ShooterConfig.POLLEN_POWER_A = newPollenPowerA;
-                    ShooterConfig.POLLEN_POWER_B = newPollenPowerB;
-                    ShooterConfig.POLLEN_POWER_C = newPollenPowerC;
+                    ShooterConfig.POLLEN_RPM_A = newPollenRpmA;
+                    ShooterConfig.POLLEN_RPM_B = newPollenRpmB;
+                    ShooterConfig.POLLEN_RPM_C = newPollenRpmC;
                     ShooterConfig.POLLEN_PITCH_A = newPollenPitchA;
                     ShooterConfig.POLLEN_PITCH_B = newPollenPitchB;
                     ShooterConfig.POLLEN_PITCH_C = newPollenPitchC;
                 }
                 if (updateNectar) {
-                    ShooterConfig.NECTAR_POWER_A = newNectarPowerA;
-                    ShooterConfig.NECTAR_POWER_B = newNectarPowerB;
-                    ShooterConfig.NECTAR_POWER_C = newNectarPowerC;
+                    ShooterConfig.NECTAR_RPM_A = newNectarRpmA;
+                    ShooterConfig.NECTAR_RPM_B = newNectarRpmB;
+                    ShooterConfig.NECTAR_RPM_C = newNectarRpmC;
                     ShooterConfig.NECTAR_PITCH_A = newNectarPitchA;
                     ShooterConfig.NECTAR_PITCH_B = newNectarPitchB;
                     ShooterConfig.NECTAR_PITCH_C = newNectarPitchC;
@@ -258,7 +278,6 @@ public class ShooterSubsystem {
                 coefficientsSource = ShooterConfig.COEFFICIENTS_SOURCE;
                 return true;
             } else {
-                // Restaurare backup în caz de eșec
                 if (bakFile.exists()) {
                     bakFile.renameTo(finalFile);
                 }
@@ -269,26 +288,51 @@ public class ShooterSubsystem {
         }
     }
 
+    public void setRPM(double rpm) {
+        setPollenRPM(rpm);
+        setNectarRPM(rpm);
+    }
+
+    public void setPollenRPM(double rpm) {
+        this.pollenRPM = Math.max(ShooterConfig.MIN_RPM, Math.min(ShooterConfig.MAX_RPM, rpm));
+        ShooterConfig.TARGET_RPM = this.pollenRPM;
+    }
+
+    public void setNectarRPM(double rpm) {
+        this.nectarRPM = Math.max(ShooterConfig.MIN_RPM, Math.min(ShooterConfig.MAX_RPM, rpm));
+    }
+
+    public double getPollenRPM() {
+        return pollenRPM;
+    }
+
+    public double getNectarRPM() {
+        return nectarRPM;
+    }
+
+    @Deprecated
     public void setPower(double power) {
-        setPollenPower(power);
-        setNectarPower(power);
+        setRPM(power * ShooterConfig.MAX_RPM);
     }
 
+    @Deprecated
     public void setPollenPower(double power) {
-        this.pollenPower = Math.max(0.0, Math.min(1.0, power));
-        ShooterConfig.TARGET_POWER = this.pollenPower;
+        setPollenRPM(power * ShooterConfig.MAX_RPM);
     }
 
+    @Deprecated
     public void setNectarPower(double power) {
-        this.nectarPower = Math.max(0.0, Math.min(1.0, power));
+        setNectarRPM(power * ShooterConfig.MAX_RPM);
     }
 
+    @Deprecated
     public double getPollenPower() {
-        return pollenPower;
+        return pollenRPM / ShooterConfig.MAX_RPM;
     }
 
+    @Deprecated
     public double getNectarPower() {
-        return nectarPower;
+        return nectarRPM / ShooterConfig.MAX_RPM;
     }
 
     public void setPollenPitchPosition(double position) {
@@ -313,12 +357,22 @@ public class ShooterSubsystem {
         return nectarPitchPosition;
     }
 
-    public void adjustPollenPower(double delta) {
-        setPollenPower(pollenPower + delta);
+    public void adjustPollenRPM(double delta) {
+        setPollenRPM(pollenRPM + delta);
     }
 
+    public void adjustNectarRPM(double delta) {
+        setNectarRPM(nectarRPM + delta);
+    }
+
+    @Deprecated
+    public void adjustPollenPower(double delta) {
+        adjustPollenRPM(delta * ShooterConfig.MAX_RPM);
+    }
+
+    @Deprecated
     public void adjustNectarPower(double delta) {
-        setNectarPower(nectarPower + delta);
+        adjustNectarRPM(delta * ShooterConfig.MAX_RPM);
     }
 
     public void adjustPollenPitchPosition(double delta) {
@@ -387,32 +441,44 @@ public class ShooterSubsystem {
         return isPollenRunning || isNectarRunning;
     }
 
+    public void increaseRPM(double delta) {
+        adjustPollenRPM(delta);
+        adjustNectarRPM(delta);
+    }
+
+    public void decreaseRPM(double delta) {
+        adjustPollenRPM(-delta);
+        adjustNectarRPM(-delta);
+    }
+
+    @Deprecated
     public void increasePower(double delta) {
-        adjustPollenPower(delta);
-        adjustNectarPower(delta);
+        increaseRPM(delta * ShooterConfig.MAX_RPM);
     }
 
+    @Deprecated
     public void decreasePower(double delta) {
-        adjustPollenPower(-delta);
-        adjustNectarPower(-delta);
+        decreaseRPM(delta * ShooterConfig.MAX_RPM);
     }
 
-    public void updatePowerForDistance(double distanceInches) {
+    public void updateSpeedForDistance(double distanceInches) {
         double d = Math.max(org.firstinspires.ftc.teamcode.configurables.TurretConfig.MIN_DISTANCE_INCHES,
                    Math.min(org.firstinspires.ftc.teamcode.configurables.TurretConfig.MAX_DISTANCE_INCHES, distanceInches));
 
-        // Calcul independent pentru Pollen
-        double calculatedPollenPower = ShooterConfig.POLLEN_POWER_A * d * d + ShooterConfig.POLLEN_POWER_B * d + ShooterConfig.POLLEN_POWER_C;
+        double calculatedPollenRPM = ShooterConfig.POLLEN_RPM_A * d * d + ShooterConfig.POLLEN_RPM_B * d + ShooterConfig.POLLEN_RPM_C;
         double calculatedPollenPitch = ShooterConfig.POLLEN_PITCH_A * d * d + ShooterConfig.POLLEN_PITCH_B * d + ShooterConfig.POLLEN_PITCH_C;
 
-        // Calcul independent pentru Nectar
-        double calculatedNectarPower = ShooterConfig.NECTAR_POWER_A * d * d + ShooterConfig.NECTAR_POWER_B * d + ShooterConfig.NECTAR_POWER_C;
+        double calculatedNectarRPM = ShooterConfig.NECTAR_RPM_A * d * d + ShooterConfig.NECTAR_RPM_B * d + ShooterConfig.NECTAR_RPM_C;
         double calculatedNectarPitch = ShooterConfig.NECTAR_PITCH_A * d * d + ShooterConfig.NECTAR_PITCH_B * d + ShooterConfig.NECTAR_PITCH_C;
 
-        setPollenPower(calculatedPollenPower);
+        setPollenRPM(calculatedPollenRPM);
         setPollenPitchPosition(calculatedPollenPitch);
-        setNectarPower(calculatedNectarPower);
+        setNectarRPM(calculatedNectarRPM);
         setNectarPitchPosition(calculatedNectarPitch);
+    }
+
+    public void updatePowerForDistance(double distanceInches) {
+        updateSpeedForDistance(distanceInches);
     }
 
     public void fetchDefaultPIDF() {
@@ -461,22 +527,38 @@ public class ShooterSubsystem {
         return infinite(() -> {
             updatePIDFCoefficients();
 
-            pollenMotor.setPower(isPollenRunning ? pollenPower : 0.0);
-            nectarMotor.setPower(isNectarRunning ? nectarPower : 0.0);
+            if (pollenMotor != null) {
+                double targetTicks = isPollenRunning ? rpmToTicksPerSec(pollenRPM) : 0.0;
+                pollenMotor.setVelocity(targetTicks);
+            }
+            if (nectarMotor != null) {
+                double targetTicks = isNectarRunning ? rpmToTicksPerSec(nectarRPM) : 0.0;
+                nectarMotor.setVelocity(targetTicks);
+            }
 
-            pitchServoPollen.setPosition(pollenPitchPosition);
-            pitchServoNectar.setPosition(nectarPitchPosition);
+            if (pitchServoPollen != null) {
+                pitchServoPollen.setPosition(pollenPitchPosition);
+            }
+            if (pitchServoNectar != null) {
+                pitchServoNectar.setPosition(nectarPitchPosition);
+            }
         });
     }
 
     public void printTelemetry(Telemetry telemetry, TelemetryLevel level) {
         if (telemetry == null || level == TelemetryLevel.NONE) return;
 
+        // Telemetrie Numerica (Plotting în FTC Dashboard / Panels)
+        telemetry.addData("Pollen Target RPM", isPollenRunning ? pollenRPM : 0.0);
+        telemetry.addData("Pollen Current RPM", getPollenCurrentRPM());
+        telemetry.addData("Nectar Target RPM", isNectarRunning ? nectarRPM : 0.0);
+        telemetry.addData("Nectar Current RPM", getNectarCurrentRPM());
+
         telemetry.addData("Shooter Pollen", isPollenRunning ? "ON" : "OFF");
         telemetry.addData("Shooter Nectar", isNectarRunning ? "ON" : "OFF");
         telemetry.addData("Sursă Coeficienți", ShooterConfig.COEFFICIENTS_SOURCE);
-        telemetry.addData("Pollen Shooter", String.format(java.util.Locale.US, "Pwr: %.2f | Pitch: %.3f", pollenPower, pollenPitchPosition));
-        telemetry.addData("Nectar Shooter", String.format(java.util.Locale.US, "Pwr: %.2f | Pitch: %.3f", nectarPower, nectarPitchPosition));
+        telemetry.addData("Pollen Shooter", String.format(java.util.Locale.US, "RPM: %.0f (Curent: %.0f) | Pitch: %.3f", pollenRPM, getPollenCurrentRPM(), pollenPitchPosition));
+        telemetry.addData("Nectar Shooter", String.format(java.util.Locale.US, "RPM: %.0f (Curent: %.0f) | Pitch: %.3f", nectarRPM, getNectarCurrentRPM(), nectarPitchPosition));
         telemetry.addData("REV Default Pollen PIDF", defaultPollenPidf);
         telemetry.addData("REV Default Nectar PIDF", defaultNectarPidf);
 

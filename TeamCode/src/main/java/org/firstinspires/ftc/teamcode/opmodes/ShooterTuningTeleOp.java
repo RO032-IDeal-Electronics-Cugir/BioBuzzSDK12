@@ -162,22 +162,22 @@ public class ShooterTuningTeleOp extends RobotOpMode {
             }
         }
 
-        // Gamepad 2 - Ajustare Putere (DPad Up / Down) cu pas fin (0.01 sau 0.05)
-        double powerStep = gamepad2.right_bumper ? 0.05 : 0.01;
+        // Gamepad 2 - Ajustare RPM (DPad Up / Down) (50 sau 250 RPM)
+        double rpmStep = gamepad2.right_bumper ? 250.0 : 50.0;
         if (gamepad2.dpadUpWasPressed()) {
             if (tuningTarget == TuningTarget.POLLEN_ONLY || tuningTarget == TuningTarget.BOTH) {
-                robot.shooter.adjustPollenPower(powerStep);
+                robot.shooter.adjustPollenRPM(rpmStep);
             }
             if (tuningTarget == TuningTarget.NECTAR_ONLY || tuningTarget == TuningTarget.BOTH) {
-                robot.shooter.adjustNectarPower(powerStep);
+                robot.shooter.adjustNectarRPM(rpmStep);
             }
         }
         if (gamepad2.dpadDownWasPressed()) {
             if (tuningTarget == TuningTarget.POLLEN_ONLY || tuningTarget == TuningTarget.BOTH) {
-                robot.shooter.adjustPollenPower(-powerStep);
+                robot.shooter.adjustPollenRPM(-rpmStep);
             }
             if (tuningTarget == TuningTarget.NECTAR_ONLY || tuningTarget == TuningTarget.BOTH) {
-                robot.shooter.adjustNectarPower(-powerStep);
+                robot.shooter.adjustNectarRPM(-rpmStep);
             }
         }
 
@@ -251,32 +251,32 @@ public class ShooterTuningTeleOp extends RobotOpMode {
         double distanceInches = robot.turret.getCurrentDistanceInches();
 
         if (tuningTarget == TuningTarget.POLLEN_ONLY || tuningTarget == TuningTarget.BOTH) {
-            double pwr = robot.shooter.getPollenPower();
+            double rpm = robot.shooter.getPollenRPM();
             double pitch = robot.shooter.getPollenPitchPosition();
-            String row = String.format(Locale.US, "%.6f,%.6f,%.6f", distanceInches, pwr, pitch);
+            String row = String.format(Locale.US, "%.6f,%.6f,%.6f", distanceInches, rpm, pitch);
 
             if (writeCsvRow(pollenCsvFile, row)) {
                 pollenDist.add(distanceInches);
-                pollenPwr.add(pwr);
+                pollenPwr.add(rpm);
                 pollenPitch.add(pitch);
                 pollenPointsCount = pollenDist.size();
-                lastPollenEntry = String.format(Locale.US, "%.2f,%.3f,%.3f", distanceInches, pwr, pitch);
+                lastPollenEntry = String.format(Locale.US, "%.2f,%.0f RPM,%.3f", distanceInches, rpm, pitch);
             } else {
                 lastPollenEntry = "❌ EROARE SCRIERE CSV!";
             }
         }
 
         if (tuningTarget == TuningTarget.NECTAR_ONLY || tuningTarget == TuningTarget.BOTH) {
-            double pwr = robot.shooter.getNectarPower();
+            double rpm = robot.shooter.getNectarRPM();
             double pitch = robot.shooter.getNectarPitchPosition();
-            String row = String.format(Locale.US, "%.6f,%.6f,%.6f", distanceInches, pwr, pitch);
+            String row = String.format(Locale.US, "%.6f,%.6f,%.6f", distanceInches, rpm, pitch);
 
             if (writeCsvRow(nectarCsvFile, row)) {
                 nectarDist.add(distanceInches);
-                nectarPwr.add(pwr);
+                nectarPwr.add(rpm);
                 nectarPitch.add(pitch);
                 nectarPointsCount = nectarDist.size();
-                lastNectarEntry = String.format(Locale.US, "%.2f,%.3f,%.3f", distanceInches, pwr, pitch);
+                lastNectarEntry = String.format(Locale.US, "%.2f,%.0f RPM,%.3f", distanceInches, rpm, pitch);
             } else {
                 lastNectarEntry = "❌ EROARE SCRIERE CSV!";
             }
@@ -455,10 +455,10 @@ public class ShooterTuningTeleOp extends RobotOpMode {
                 robot.turret.getCurrentDistanceInches(), robot.turret.getCurrentDistanceInches() * 0.0254));
 
         telemetry.addLine("------------------------------------------------");
-        telemetry.addData("🌸 POLLEN Shooter", String.format(Locale.US, "Power: %.2f | Pitch Servo: %.3f",
-                robot.shooter.getPollenPower(), robot.shooter.getPollenPitchPosition()));
-        telemetry.addData("🍯 NECTAR Shooter", String.format(Locale.US, "Power: %.2f | Pitch Servo: %.3f",
-                robot.shooter.getNectarPower(), robot.shooter.getNectarPitchPosition()));
+        telemetry.addData("🌸 POLLEN Shooter", String.format(Locale.US, "RPM: %.0f (Curent: %.0f) | Pitch Servo: %.3f",
+                robot.shooter.getPollenRPM(), robot.shooter.getPollenCurrentRPM(), robot.shooter.getPollenPitchPosition()));
+        telemetry.addData("🍯 NECTAR Shooter", String.format(Locale.US, "RPM: %.0f (Curent: %.0f) | Pitch Servo: %.3f",
+                robot.shooter.getNectarRPM(), robot.shooter.getNectarCurrentRPM(), robot.shooter.getNectarPitchPosition()));
 
         telemetry.addLine("═════════════ COEFICIENȚI HARDWARE PIDF (REV HUB) ═════════════");
         telemetry.addData("⚙️ Pollen Default REV PIDF", ShooterSubsystem.defaultPollenPidf);
@@ -489,7 +489,7 @@ public class ShooterTuningTeleOp extends RobotOpMode {
 
         telemetry.addLine("═════════════ CONTROALE GAMEPAD 2 ═════════════");
         telemetry.addLine("• L1 / Share: Comută POLLEN / NECTAR / BOTH");
-        telemetry.addLine("• DPad Sus/Jos: ±Power | DPad Stânga/Dreapta: ±Pitch Servo");
+        telemetry.addLine("• DPad Sus/Jos: ±RPM (50/250 RPM) | DPad Stânga/Dreapta: ±Pitch Servo");
         telemetry.addLine("• Pătrat: Pornire / Oprire Flywheels + Intake & Transfer");
         telemetry.addLine("• Triunghi: SALVARE PUNCT ÎN CSV & MEMORIE");
         telemetry.addLine("• R1 + Triunghi: CALCUL AUTOMAT REGRESIE & SALVARE JSON");
