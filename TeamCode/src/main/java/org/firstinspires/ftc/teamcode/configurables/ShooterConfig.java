@@ -55,13 +55,13 @@ public class ShooterConfig {
     // Valori implicite Shooter & Limite Mecanice (Configurabile în FTCDashboard / Panels)
     public static double DEFAULT_POLLEN_RPM = 3500.0;
     public static double DEFAULT_NECTAR_RPM = 3500.0;
-    public static double DEFAULT_POLLEN_PITCH = 0.80;
-    public static double DEFAULT_NECTAR_PITCH = 0.80;
+    public static double DEFAULT_POLLEN_PITCH = 0.81;
+    public static double DEFAULT_NECTAR_PITCH = 0.81;
 
     public static double MAX_RPM = 6000.0;
     public static double MIN_RPM = 0.0;
 
-    public static double MAX_PITCH_POSITION = 0.80;
+    public static double MAX_PITCH_POSITION = 0.81;
     public static double MIN_PITCH_POSITION = 0.0;
 }
 

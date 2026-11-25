@@ -96,25 +96,17 @@ public class VisionAlignTeleOp extends RobotOpMode {
         // Gamepad 1 - Control Drivetrain
         double forward = -gamepad1.left_stick_y;
         double strafe = gamepad1.left_stick_x;
-       double turn = gamepad1.right_trigger- gamepad1.left_trigger;
+        double turn = gamepad1.right_trigger - gamepad1.left_trigger;
 
         if (gamepad1.shareWasPressed()) {
             robot.drivetrain.toggleDriveMode();
         }
 
-        if (gamepad1.rightBumperWasPressed()) {
-            visionAlignCommand.start();
-        }
-        if (gamepad1.rightBumperWasReleased()) {
-            visionAlignCommand.stop();
-        }
+        robot.drivetrain.drive(forward, strafe, turn);
 
-        if (gamepad1.right_bumper) {
-            visionAlignCommand.execute(forward, strafe);
-            boolean aligned = visionAlignCommand.isAligned();
-            telemetry.addData("Vision Align", aligned ? "ALIGNED" : "ALIGNING");
-        } else {
-            robot.drivetrain.drive(forward, strafe, turn);
+        // Gamepad 1 - Shooter Control (R1 / Right Bumper = Pornire / Oprire Shootere)
+        if (gamepad1.rightBumperWasPressed()) {
+            robot.shooter.toggle();
         }
 
         // Gamepad 1 - Intake Control
@@ -128,11 +120,6 @@ public class VisionAlignTeleOp extends RobotOpMode {
             } else {
                 robot.intake.stop();
             }
-        }
-
-        // Gamepad 1 - Shooter Toggle
-        if (gamepad1.squareWasPressed()) {
-            robot.shooter.toggle();
         }
 
         // Gamepad 1 - Bara la intake
@@ -168,10 +155,10 @@ public class VisionAlignTeleOp extends RobotOpMode {
             }
         } else {
             if (gamepad2.dpadUpWasPressed()) {
-                robot.shooter.increasePower(0.05);
+                robot.shooter.increaseRPM(100);
             }
             if (gamepad2.dpadDownWasPressed()) {
-                robot.shooter.decreasePower(0.05);
+                robot.shooter.decreaseRPM(100);
             }
         }
 
@@ -179,6 +166,14 @@ public class VisionAlignTeleOp extends RobotOpMode {
         if (gamepad2.triangleWasPressed()) {
             robot.drivetrain.resetHeading();
         }
+
+        // Telemetrie Live Target & Pitch Calculat din Funcție
+        double distanceInches = robot.turret.getCurrentDistanceInches();
+        telemetry.addData("📏 Distanță Turelă -> HIVE", String.format(java.util.Locale.US, "%.2f in (%.2f m)", distanceInches, distanceInches * 0.0254));
+        telemetry.addData("🌸 Pollen Target RPM", String.format(java.util.Locale.US, "%.0f RPM (Măsurat: %.0f RPM)", robot.shooter.getPollenRPM(), robot.shooter.getPollenCurrentRPM()));
+        telemetry.addData("🌸 Pollen Target Pitch", String.format(java.util.Locale.US, "%.3f", robot.shooter.getPollenPitchPosition()));
+        telemetry.addData("🍯 Nectar Target RPM", String.format(java.util.Locale.US, "%.0f RPM (Măsurat: %.0f RPM)", robot.shooter.getNectarRPM(), robot.shooter.getNectarCurrentRPM()));
+        telemetry.addData("🍯 Nectar Target Pitch", String.format(java.util.Locale.US, "%.3f", robot.shooter.getNectarPitchPosition()));
 
         robot.updateTelemetry(Robot.RobotTelemetryMode.MATCH);
     }
